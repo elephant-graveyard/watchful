@@ -18,16 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package dom_test
-
-import (
-	"testing"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-)
-
-func TestDom(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter internal suite")
-}
+/*
+Package dom is short for disrupt-o-meter and is the main internal package for
+code of the tool of the same name.
+*/
+package dom
