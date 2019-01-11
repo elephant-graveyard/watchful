@@ -21,7 +21,14 @@
 package dom_test
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gorilla/mux"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -30,4 +37,54 @@ import (
 func TestDom(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "disrupt-o-meter internal suite")
+}
+
+type CloudFoundry struct {
+	Server *httptest.Server
+}
+
+func NewFakeCloudFoundry() CloudFoundry {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/v2/info", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, asJson(map[string]interface{}{
+			"name": "Fake Cloud Foundry",
+		}))
+	})
+
+	r.HandleFunc("/v2/apps", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, asJson(map[string]interface{}{
+			"total_results": 0,
+			"total_pages":   0,
+			"prev_url":      nil,
+			"next_url":      nil,
+			"resources":     []map[string]interface{}{},
+		}))
+	})
+
+	// catch all unhandled paths
+	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Unexpected call: %v", spew.Sdump(r))
+
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "path not implemented")
+	})
+
+	return CloudFoundry{
+		Server: httptest.NewServer(r),
+	}
+}
+
+func (cf *CloudFoundry) Teardown() {
+	if cf.Server != nil {
+		cf.Server.Close()
+		cf.Server = nil
+	}
+}
+
+func asJson(input map[string]interface{}) string {
+	bytes, err := json.Marshal(input)
+	Expect(err).To(BeNil())
+
+	return string(bytes)
 }
