@@ -29,4 +29,5 @@ GO111MODULE=on ginkgo -r \
   --nodes=4 \
   --compilers=2 \
   --race \
-  --trace
+  --trace \
+  -v
