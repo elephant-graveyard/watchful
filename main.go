@@ -20,7 +20,7 @@
 
 package main
 
-import "github.com/homeport/disrupt-o-meter/internal/cmd"
+import "github.com/homeport/disrupt-o-meter/dom/cmd"
 
 func main() {
 	cmd.Execute()
