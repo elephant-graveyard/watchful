@@ -44,12 +44,12 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("Should have the correct name", func() {
-			Expect(merkhet.GetDependencySupplier().GetConfiguration().GetName()).To(BeEquivalentTo("test-config"))
+			Expect(merkhet.GetBase().GetConfiguration().GetName()).To(BeEquivalentTo("test-config"))
 		})
 
 		It("Should have installed", func() {
 			var loggerContent string
-			merkhet.GetDependencySupplier().GetLogger().PushObserver(func(b []byte) {
+			merkhet.GetBase().GetLogger().PushObserver(func(b []byte) {
 				loggerContent = loggerContent + string(b)
 			})
 

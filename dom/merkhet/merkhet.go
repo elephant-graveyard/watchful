@@ -27,36 +27,36 @@ type Merkhet interface {
 	Install()
 	PostConnect()
 	Execute()
-	GetDependencySupplier() DependencySupplier
+	GetBase() Base
 	BuildResult() Result
 }
 
 //--
 
-//DependencySupplier defines an object that stores values all merkhet implementations will need
-type DependencySupplier interface {
+//Base defines an object that stores values all merkhet implementations will need
+type Base interface {
 	GetLogger() logger.Logger
 	GetConfiguration() Configuration
 }
 
-type simpleDepdencySupplier struct {
+type simpleBase struct {
 	Logger        logger.Logger
 	Configuration Configuration
 }
 
 //GetLogger returns the logger intances the supplier contains
-func (s *simpleDepdencySupplier) GetLogger() logger.Logger {
+func (s *simpleBase) GetLogger() logger.Logger {
 	return s.Logger
 }
 
 //GetConfiguration returns the configuration instances the supplier contains
-func (s *simpleDepdencySupplier) GetConfiguration() Configuration {
+func (s *simpleBase) GetConfiguration() Configuration {
 	return s.Configuration
 }
 
-//NewDependencySupplier creates an instance of the DependecySupplier interface
-func NewDependencySupplier(logger logger.Logger, config Configuration) DependencySupplier {
-	return &simpleDepdencySupplier{
+//NewMerkhetBase creates an instance of the DependecySupplier interface
+func NewMerkhetBase(logger logger.Logger, config Configuration) Base {
+	return &simpleBase{
 		Logger:        logger,
 		Configuration: config,
 	}

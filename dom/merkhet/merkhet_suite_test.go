@@ -38,38 +38,38 @@ func TestMerkhet(t *testing.T) {
 }
 
 type MerkhetMock struct {
-	DependencySupplier DependencySupplier
-	FailedRuns         uint
-	TotalRuns          uint
-	WillExecute        bool
+	Base        Base
+	FailedRuns  uint
+	TotalRuns   uint
+	WillExecute bool
 }
 
 func (s *MerkhetMock) Install() {
-	s.DependencySupplier.GetLogger().WriteString("Install")
+	s.GetBase().GetLogger().WriteString("Install")
 }
 
 func (s *MerkhetMock) PostConnect() {
-	s.DependencySupplier.GetLogger().WriteString("PostConnect")
+	s.GetBase().GetLogger().WriteString("PostConnect")
 }
 
 func (s *MerkhetMock) Execute() {
-	s.DependencySupplier.GetLogger().WriteString("Execute")
+	s.GetBase().GetLogger().WriteString("Execute")
 }
 
-func (s *MerkhetMock) GetDependencySupplier() DependencySupplier {
-	return s.DependencySupplier
+func (s *MerkhetMock) GetBase() Base {
+	return s.Base
 }
 
 func (s *MerkhetMock) BuildResult() Result {
-	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.GetDependencySupplier().GetConfiguration().IsValidRun(s.TotalRuns, s.FailedRuns))
+	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.GetBase().GetConfiguration().IsValidRun(s.TotalRuns, s.FailedRuns))
 }
 
 func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute bool) *MerkhetMock {
 	return &MerkhetMock{
-		DependencySupplier: NewDependencySupplier(NewLoggerMock(), config),
-		TotalRuns:          totalRuns,
-		FailedRuns:         fails,
-		WillExecute:        canExecute,
+		Base:        NewMerkhetBase(NewLoggerMock(), config),
+		TotalRuns:   totalRuns,
+		FailedRuns:  fails,
+		WillExecute: canExecute,
 	}
 }
 
