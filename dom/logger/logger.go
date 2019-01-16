@@ -18,34 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package stats
+package logger
 
-//MesureStat defines a statistic object that contains the data of a hurtle run
-type MesureStat interface {
-	GetTotalRuns() uint
-	GetFailedRuns() uint
+//Logger defines an observable logger
+type Logger interface {
+	PushObserver(func(bytes []byte))
+
+	Write(p []byte) (n int, err error)
+	WriteString(s string) error
 }
 
-//SimpleMesureStat is a small implementation of the HurtleStat interface
-type SimpleMesureStat struct {
-	TotalRuns  uint
-	FailedRuns uint
-}
-
-//GetTotalRuns returns the amount of runs this hurtle did
-func (s *SimpleMesureStat) GetTotalRuns() uint {
-	return s.TotalRuns
-}
-
-//GetFailedRuns returns the total amount of faild runs
-func (s *SimpleMesureStat) GetFailedRuns() uint {
-	return s.FailedRuns
-}
-
-//NewMeasureStat creates a new instance of the MeasureStat interface
-func NewMeasureStat(totalRuns uint, failedRuns uint) MesureStat {
-	return &SimpleMesureStat{
-		TotalRuns:  totalRuns,
-		FailedRuns: failedRuns,
-	}
-}
+//--
