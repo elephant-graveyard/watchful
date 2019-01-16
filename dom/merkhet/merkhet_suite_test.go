@@ -22,7 +22,6 @@ package merkhet_test
 
 import (
 	"bytes"
-	"io"
 	"testing"
 
 	"github.com/homeport/disrupt-o-meter/dom/logger"
@@ -76,12 +75,16 @@ func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute
 //--
 
 type LoggerMock struct {
-	Buffer    io.Writer
+	Buffer    *bytes.Buffer
 	Observers []func(b []byte)
 }
 
 func (l *LoggerMock) PushObserver(observer func(bytes []byte)) {
 	l.Observers = append(l.Observers, observer)
+}
+
+func (l *LoggerMock) GetName() string {
+	return "LoggerMock"
 }
 
 func (l *LoggerMock) Write(p []byte) (n int, err error) {
@@ -95,6 +98,12 @@ func (l *LoggerMock) Write(p []byte) (n int, err error) {
 func (l *LoggerMock) WriteString(s string) error {
 	_, err := l.Write([]byte(s))
 	return err
+}
+
+func (l *LoggerMock) Clear() []byte {
+	b := l.Buffer.Bytes()
+	l.Buffer.Reset()
+	return b
 }
 
 func NewLoggerMock() logger.Logger {

@@ -20,12 +20,46 @@
 
 package logger
 
+import "time"
+
 //Logger defines an observable logger
 type Logger interface {
+	//PushObserver adds an observer function to the logger.
+	//This function is executed whenever a write call is issued against the Logger intance
 	PushObserver(func(bytes []byte))
 
+	//GetName returns the name of the logger
+	GetName() string
+
+	//Write simply writes a byte array to the logger. This will trigger all observers
 	Write(p []byte) (n int, err error)
+
+	//WriteString writes all bytes of the string to the logger.
+	//This will also trigger observers
 	WriteString(s string) error
+
+	//Clear removes all logged bytes from the Logger and returns them for future use
+	Clear() []byte
 }
 
 //--
+
+//Coupler defines a service that is capable of coupling loggers into on syncronized output
+type Coupler interface {
+	//GetFormatter returns the formatter instance the Coupler uses to combine the loggers handled
+	GetFormatter() CoupledFormatter
+
+	//RegisterLogger registers a logger into the coupler, effectivly making the coupler handle the bytes written to the logger
+	RegisterLogger(logger Logger)
+}
+
+//--
+
+//CoupledFormatter deinfes an interface that is capable of formatting a LoggerCoupler output
+type CoupledFormatter interface {
+	//FormatLoggerOutput formats all passed byte arrays into one final string
+	FormatLoggerOutput(outputs [][]byte) string
+
+	//GetLocation returns the location used to determin the date that is passed into the logs
+	GetLocation() time.Location
+}

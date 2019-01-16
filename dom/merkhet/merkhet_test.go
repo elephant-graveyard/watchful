@@ -48,14 +48,9 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("Should have installed", func() {
-			var loggerContent string
-			merkhet.GetBase().GetLogger().PushObserver(func(b []byte) {
-				loggerContent = loggerContent + string(b)
-			})
-
 			container.Push(merkhet)
 			container.InstallAll()
-			Expect(loggerContent).To(BeEquivalentTo("Install"))
+			Expect(string(merkhet.GetBase().GetLogger().Clear())).To(BeEquivalentTo("Install"))
 		})
 
 		It("Should pass the merkhet test using a flat config", func() {
