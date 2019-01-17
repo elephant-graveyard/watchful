@@ -24,8 +24,8 @@ import "time"
 
 //--
 
-//Cluster deinfes an interface that is capable of formatting a LoggerCoupler output
-type Cluster interface {
+//Pipeline deinfes an interface that is capable of formatting a LoggerCoupler output
+type Pipeline interface {
 	//Write formats all passed byte arrays into one final string
 	Write(messages []ChannelMessage) string
 

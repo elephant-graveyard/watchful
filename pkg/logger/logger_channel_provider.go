@@ -20,50 +20,49 @@
 
 package logger
 
-//MessageChannel defines the type of a channel that can be used to send ChannelMessgae instances
-type MessageChannel chan ChannelMessage
-
 //ChannelProvider is a small provider instance that provides a reference to the channel loggers use to communicate with the logger coupler instance
 type ChannelProvider interface {
 
-	//Get returns the message channel instance this provider is providing
-	Get() MessageChannel
+	//Push pushes the channel message onto the channel
+	Push(message ChannelMessage)
+
+	//Read reads the channel message from the wrapped channel
+	Read() ChannelMessage
+
+	//GetChannel returns the wrapped channel instance
+	GetChannel() chan ChannelMessage
 }
 
 //simpleChannelProvider is a basic struct base implementation of the of ChannelProvider interface
 type simpleChannelProvider struct {
-	Channel MessageChannel
+	Channel     chan ChannelMessage
+	ChannelSize int
 }
 
-//Get returns the instance this ChannelProvider is wrapping
-func (s *simpleChannelProvider) Get() MessageChannel {
-	return s.Channel
-}
-
-//NewChannelProvider creates a new provider providing a fresh channel instance
-func NewChannelProvider() ChannelProvider {
-	return NewChannelProviderOf(make(chan ChannelMessage))
-}
-
-//NewChannelProviderOf returns a channel provider that wraps the passed channel instance
-func NewChannelProviderOf(channel MessageChannel) ChannelProvider {
-	return &simpleChannelProvider{
-		Channel: channel,
+//Push pushes the channel message onto the channel
+func (c *simpleChannelProvider) Push(message ChannelMessage) {
+	if len(c.Channel) < c.ChannelSize {
+		c.GetChannel() <- message
+	} else {
+		go func() {
+			c.GetChannel() <- message
+		}()
 	}
 }
 
-//--
-
-//ChannelMessage is the content of the Logger channel and contains the logger name as well as the message the logger produced
-type ChannelMessage struct {
-	Logger  Logger
-	Message string
+//Read reads the channel message from the wrapped channel
+func (c *simpleChannelProvider) Read() ChannelMessage {
+	return <-c.GetChannel()
 }
 
-//NewChannelMessage is a simple constructor for the ChannelMessage struct
-func NewChannelMessage(logger Logger, message string) ChannelMessage {
-	return ChannelMessage{
-		Logger:  logger,
-		Message: message,
+func (c *simpleChannelProvider) GetChannel() chan ChannelMessage {
+	return c.Channel
+}
+
+//NewChannelProvider returns a channel provider that wraps the passed channel instance
+func NewChannelProvider(size int) ChannelProvider {
+	return &simpleChannelProvider{
+		Channel:     make(chan ChannelMessage, size),
+		ChannelSize: size,
 	}
 }

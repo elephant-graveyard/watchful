@@ -80,12 +80,7 @@ func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute
 //--
 
 type LoggerMock struct {
-	Buffer    *bytes.Buffer
-	Observers []func(b []byte)
-}
-
-func (l *LoggerMock) PushObserver(observer func(bytes []byte)) {
-	l.Observers = append(l.Observers, observer)
+	Buffer *bytes.Buffer
 }
 
 func (l *LoggerMock) GetName() string {
@@ -93,9 +88,6 @@ func (l *LoggerMock) GetName() string {
 }
 
 func (l *LoggerMock) Write(p []byte) (n int, err error) {
-	for _, observer := range l.Observers {
-		observer(p)
-	}
 
 	return l.Buffer.Write(p)
 }
@@ -105,19 +97,12 @@ func (l *LoggerMock) WriteString(s string) error {
 	return err
 }
 
-func (l *LoggerMock) Peek() []byte {
-	return l.Buffer.Bytes()
-}
-
-func (l *LoggerMock) Clear() []byte {
-	b := l.Buffer.Bytes()
-	l.Buffer.Reset()
-	return b
+func (l *LoggerMock) GetChannelProvider() logger.ChannelProvider {
+	return nil
 }
 
 func NewLoggerMock() logger.Logger {
 	return &LoggerMock{
-		Buffer:    &bytes.Buffer{},
-		Observers: make([]func(bytes []byte), 0),
+		Buffer: &bytes.Buffer{},
 	}
 }

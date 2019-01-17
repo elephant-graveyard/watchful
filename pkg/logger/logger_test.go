@@ -29,46 +29,24 @@ import (
 var _ = Describe("Logger code test", func() {
 	Context("Testing default behaviour of logger instances", func() {
 		var (
-			logger Logger
+			logger          Logger
+			channelProvider ChannelProvider
 		)
 
 		BeforeEach(func() {
-			logger = NewMemStoredLogger("test-logger")
-		})
-
-		It("Should store logs correclty", func() {
-			logger.WriteString(logger.GetName())
-			Expect(string(logger.Peek())).To(BeEquivalentTo(logger.GetName()))
-		})
-
-		It("Should store multiple strings", func() {
-			logger.WriteString("Hello")
-			logger.WriteString(" ")
-			logger.WriteString("World")
-
-			Expect(string(logger.Peek())).To(BeEquivalentTo("Hello World"))
-		})
-
-		It("Should notify observers", func() {
-			var notifiedString string
-			logger.PushObserver(func(bytes []byte) {
-				notifiedString = string(bytes)
-			})
-
-			logger.WriteString(logger.GetName())
-			Expect(notifiedString).To(BeEquivalentTo(logger.GetName()))
-		})
-
-		It("Should clear its content correctly", func() {
-			bytes := []byte(logger.GetName())
-			logger.Write(bytes)
-
-			Expect(logger.Clear()).To(BeEquivalentTo(bytes))
-			Expect(len(logger.Peek())).To(BeZero())
+			channelProvider = NewChannelProvider(1)
+			logger = NewChanneledLogger("test-logger", channelProvider)
 		})
 
 		It("Should have the correct name", func() {
 			Expect(logger.GetName()).To(BeEquivalentTo("test-logger"))
+		})
+
+		It("Should forward messages correctly", func() {
+			logger.WriteString("test")
+			logger.WriteString("more-tests")
+			Expect(channelProvider.Read().GetMessageAsString()).To(BeEquivalentTo("test"))
+			Expect(channelProvider.Read().GetMessageAsString()).To(BeEquivalentTo("more-tests"))
 		})
 	})
 })
