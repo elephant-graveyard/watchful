@@ -100,6 +100,10 @@ func (l *LoggerMock) WriteString(s string) error {
 	return err
 }
 
+func (l *LoggerMock) Peek() []byte {
+	return l.Buffer.Bytes()
+}
+
 func (l *LoggerMock) Clear() []byte {
 	b := l.Buffer.Bytes()
 	l.Buffer.Reset()
