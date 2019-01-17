@@ -20,46 +20,30 @@
 
 package merkhet
 
-import "github.com/homeport/disrupt-o-meter/dom/logger"
+import (
+	"github.com/homeport/disrupt-o-meter/pkg/logger"
+)
 
 //Merkhet deinfes a runnable mesaurement task that can be executed during the Cloud Foundery maintanance
 type Merkhet interface {
+
+	//Install installs the merkhet instance. This method call will be used to setup necessary dependencies of the merkhet
 	Install()
+
+	//PostConnect is called after DOM successfully authenticated against the cloud foundery instance
 	PostConnect()
+
+	//Execute is called each time the merkhet should test against the cloud foundery service
 	Execute()
-	GetBase() Base
+
+	//BuildResult creates a new Result instance containing the
 	BuildResult() Result
-}
 
-//--
-
-//Base defines an object that stores values all merkhet implementations will need
-type Base interface {
-	GetLogger() logger.Logger
+	//GetConfiguration returns the configuration instances the Merkhet is depending on
 	GetConfiguration() Configuration
-}
 
-type simpleBase struct {
-	Logger        logger.Logger
-	Configuration Configuration
-}
-
-//GetLogger returns the logger intances the supplier contains
-func (s *simpleBase) GetLogger() logger.Logger {
-	return s.Logger
-}
-
-//GetConfiguration returns the configuration instances the supplier contains
-func (s *simpleBase) GetConfiguration() Configuration {
-	return s.Configuration
-}
-
-//NewMerkhetBase creates an instance of the DependecySupplier interface
-func NewMerkhetBase(logger logger.Logger, config Configuration) Base {
-	return &simpleBase{
-		Logger:        logger,
-		Configuration: config,
-	}
+	//GetLogger returns the logger the merkhet instance is redirecting it's output to
+	GetLogger() logger.Logger
 }
 
 //--

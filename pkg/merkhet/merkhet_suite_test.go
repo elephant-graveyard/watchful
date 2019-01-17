@@ -24,9 +24,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/homeport/disrupt-o-meter/dom/logger"
-
-	. "github.com/homeport/disrupt-o-meter/dom/merkhet"
+	"github.com/homeport/disrupt-o-meter/pkg/logger"
+	. "github.com/homeport/disrupt-o-meter/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -37,38 +36,44 @@ func TestMerkhet(t *testing.T) {
 }
 
 type MerkhetMock struct {
-	Base        Base
-	FailedRuns  uint
-	TotalRuns   uint
-	WillExecute bool
+	Configuration Configuration
+	Logger        logger.Logger
+	FailedRuns    uint
+	TotalRuns     uint
+	WillExecute   bool
 }
 
 func (s *MerkhetMock) Install() {
-	s.GetBase().GetLogger().WriteString("Install")
+	s.GetLogger().WriteString("Install")
 }
 
 func (s *MerkhetMock) PostConnect() {
-	s.GetBase().GetLogger().WriteString("PostConnect")
+	s.GetLogger().WriteString("PostConnect")
 }
 
 func (s *MerkhetMock) Execute() {
-	s.GetBase().GetLogger().WriteString("Execute")
-}
-
-func (s *MerkhetMock) GetBase() Base {
-	return s.Base
+	s.GetLogger().WriteString("Execute")
 }
 
 func (s *MerkhetMock) BuildResult() Result {
-	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.GetBase().GetConfiguration().IsValidRun(s.TotalRuns, s.FailedRuns))
+	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.GetConfiguration().IsValidRun(s.TotalRuns, s.FailedRuns))
+}
+
+func (s *MerkhetMock) GetConfiguration() Configuration {
+	return s.Configuration
+}
+
+func (s *MerkhetMock) GetLogger() logger.Logger {
+	return s.Logger
 }
 
 func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute bool) *MerkhetMock {
 	return &MerkhetMock{
-		Base:        NewMerkhetBase(NewLoggerMock(), config),
-		TotalRuns:   totalRuns,
-		FailedRuns:  fails,
-		WillExecute: canExecute,
+		TotalRuns:     totalRuns,
+		FailedRuns:    fails,
+		WillExecute:   canExecute,
+		Configuration: config,
+		Logger:        NewLoggerMock(),
 	}
 }
 

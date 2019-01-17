@@ -21,7 +21,7 @@
 package merkhet_test
 
 import (
-	. "github.com/homeport/disrupt-o-meter/dom/merkhet"
+	. "github.com/homeport/disrupt-o-meter/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -44,13 +44,16 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("Should have the correct name", func() {
-			Expect(merkhet.GetBase().GetConfiguration().GetName()).To(BeEquivalentTo("test-config"))
+			Expect(merkhet.GetConfiguration().GetName()).To(BeEquivalentTo("test-config"))
 		})
 
 		It("Should have installed", func() {
 			container.Push(merkhet)
-			container.InstallAll()
-			Expect(string(merkhet.GetBase().GetLogger().Clear())).To(BeEquivalentTo("Install"))
+			container.ForEach(func(m Merkhet) {
+				m.Install()
+			})
+
+			Expect(string(merkhet.GetLogger().Peek())).To(BeEquivalentTo("Install"))
 		})
 
 		It("Should pass the merkhet test using a flat config", func() {

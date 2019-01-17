@@ -22,11 +22,14 @@ package merkhet
 
 //Container contains a map of registered merkhets as well as manages them
 type Container interface {
+	//Push pushes a new Merkhet instance to the Container
 	Push(merkhet Merkhet)
+
+	//Size returns the current size of the container
 	Size() uint
-	InstallAll()
-	PostConnectAll()
-	ExecuteAll()
+
+	//ForEach executes the provided function for each Merkhet instance currently managed by the container
+	ForEach(consumer func(m Merkhet))
 }
 
 //simpleContainer is a basic implementation of the MerkhetContainer interface
@@ -39,30 +42,15 @@ func (s *simpleContainer) Push(m Merkhet) {
 	s.RegisteredMerkhets = append(s.RegisteredMerkhets, m)
 }
 
+//Size returns the size of the container
 func (s *simpleContainer) Size() uint {
 	return uint(len(s.RegisteredMerkhets))
 }
 
-//InstallAll installs all Merkhets in the container
-//This should be called before the main workflow is executed, as it may take some time
-func (s *simpleContainer) InstallAll() {
-	for _, merkhet := range s.RegisteredMerkhets {
-		merkhet.Install()
-	}
-}
-
-//PostConnectAll is calling the PostConnect method on every merkhet in the container
-func (s *simpleContainer) PostConnectAll() {
-	for _, merkhet := range s.RegisteredMerkhets {
-		merkhet.PostConnect()
-	}
-}
-
-//PostConnectAll is calling the Execute method on every merkhet in the container
-//This methode can be used during testing phase
-func (s *simpleContainer) ExecuteAll() {
-	for _, merkhet := range s.RegisteredMerkhets {
-		merkhet.Execute()
+//ForEach executes the provided function for each Merkhet instance currently managed by the container
+func (s *simpleContainer) ForEach(consumer func(m Merkhet)) {
+	for _, m := range s.RegisteredMerkhets {
+		consumer(m)
 	}
 }
 

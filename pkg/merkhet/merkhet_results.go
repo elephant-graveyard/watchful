@@ -22,8 +22,16 @@ package merkhet
 
 //Result defines a statistic object that contains the data of a merkhet run
 type Result interface {
+
+	//GetTotalRuns returns the total amount of runs the merkhet instance ran
+	//at the time this result instance was created
 	GetTotalRuns() uint
+
+	//GetFailedRuns returns the total amount of faild runs the merkhet instance that build
+	//this result produced
 	GetFailedRuns() uint
+
+	//IsValid returns if the result was marked valid by the Merkhet instance that build it
 	IsValid() bool
 }
 

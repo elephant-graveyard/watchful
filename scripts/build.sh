@@ -54,7 +54,7 @@ while read -r OS ARCH; do
     -tags netgo \
     -ldflags "-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/cmd.version=${TOOL_VERSION}" \
     -o "${TARGET_FILE}" \
-    main.go
+    cmd/dom/main.go
 
 done <<EOL
 darwin amd64

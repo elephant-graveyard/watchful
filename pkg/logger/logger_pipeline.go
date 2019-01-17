@@ -18,12 +18,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package logger
 
-import (
-	"github.com/homeport/disrupt-o-meter/dom/cmd"
-)
+import "time"
 
-func main() {
-	cmd.Execute()
+//--
+
+//Cluster deinfes an interface that is capable of formatting a LoggerCoupler output
+type Cluster interface {
+	//Write formats all passed byte arrays into one final string
+	Write(messages []ChannelMessage) string
+
+	//GetLocation returns the location used to determin the date that is passed into the logs
+	GetLocation() time.Location
 }
