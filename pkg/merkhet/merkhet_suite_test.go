@@ -35,24 +35,37 @@ func TestMerkhet(t *testing.T) {
 	RunSpecs(t, "disrupt-o-meter dom merkhet suite")
 }
 
+type MerketCallback struct {
+	onInstall     func()
+	onPostConnect func()
+	onExecute     func()
+}
+
 type MerkhetMock struct {
 	Configuration Configuration
 	Logger        logger.Logger
 	FailedRuns    uint
 	TotalRuns     uint
 	WillExecute   bool
+	Callback      *MerketCallback
 }
 
 func (s *MerkhetMock) Install() {
-	s.GetLogger().WriteString("Install")
+	if s.Callback.onInstall != nil {
+		s.Callback.onInstall()
+	}
 }
 
 func (s *MerkhetMock) PostConnect() {
-	s.GetLogger().WriteString("PostConnect")
+	if s.Callback.onPostConnect != nil {
+		s.Callback.onPostConnect()
+	}
 }
 
 func (s *MerkhetMock) Execute() {
-	s.GetLogger().WriteString("Execute")
+	if s.Callback.onExecute != nil {
+		s.Callback.onExecute()
+	}
 }
 
 func (s *MerkhetMock) BuildResult() Result {
@@ -67,13 +80,14 @@ func (s *MerkhetMock) GetLogger() logger.Logger {
 	return s.Logger
 }
 
-func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute bool) *MerkhetMock {
+func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute bool, callback *MerketCallback) *MerkhetMock {
 	return &MerkhetMock{
 		TotalRuns:     totalRuns,
 		FailedRuns:    fails,
 		WillExecute:   canExecute,
 		Configuration: config,
 		Logger:        NewLoggerMock(),
+		Callback:      callback,
 	}
 }
 

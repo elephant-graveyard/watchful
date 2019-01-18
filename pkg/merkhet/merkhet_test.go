@@ -29,18 +29,20 @@ import (
 var _ = Describe("Merkhet code test", func() {
 	Context("Testing default behaviour of merkhet instances", func() {
 		var (
-			container Container
-			merkhet   Merkhet
+			pool     Pool
+			callback *MerketCallback
+			merkhet  Merkhet
 		)
 
 		BeforeEach(func() {
-			container = NewContainer()
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 0), 10, 0, true)
+			pool = NewPool()
+			callback = &MerketCallback{}
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 0), 10, 0, true, callback)
 		})
 
 		It("Should have 1 merkhats", func() {
-			container.Push(merkhet)
-			Expect(container.Size()).To(BeNumerically("==", 1))
+			pool.StartWorker(merkhet)
+			Expect(pool.Size()).To(BeNumerically("==", 1))
 		})
 
 		It("Should have the correct name", func() {
@@ -48,31 +50,38 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("Should have installed", func() {
-			container.Push(merkhet)
-			container.ForEach(func(m Merkhet) {
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, &MerketCallback{
+				onInstall: func() {
+					Succeed()
+				},
+			})
+
+			pool.StartWorker(merkhet)
+
+			pool.ForEach(func(m Merkhet) { //This will synchronize the workflow
 				m.Install()
 			})
 
-			//TODO check for result
+			pool.Shutdown()
 		})
 
 		It("Should pass the merkhet test using a flat config", func() {
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true)
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().IsValid()).To(BeTrue())
 		})
 
 		It("Should not pass the merkhet test using a flat config", func() {
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 1), 10, 2, true)
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 1), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().IsValid()).To(BeFalse())
 		})
 
 		It("Should pass the merkhet test using a percentage config", func() {
-			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.2), 10, 2, true)
+			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.2), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().IsValid()).To(BeTrue())
 		})
 
 		It("Should not pass the merkhet test using a percentage config", func() {
-			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.1), 10, 2, true)
+			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.1), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().IsValid()).To(BeFalse())
 		})
 	})
