@@ -87,8 +87,11 @@ func (l *LoggerMock) GetName() string {
 	return "LoggerMock"
 }
 
-func (l *LoggerMock) Write(p []byte) (n int, err error) {
+func (l *LoggerMock) GetID() int {
+	return 0
+}
 
+func (l *LoggerMock) Write(p []byte) (n int, err error) {
 	return l.Buffer.Write(p)
 }
 

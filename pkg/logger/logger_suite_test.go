@@ -21,6 +21,9 @@ package logger_test
 
 import (
 	"testing"
+	"time"
+
+	. "github.com/homeport/disrupt-o-meter/pkg/logger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,4 +32,20 @@ import (
 func TestMerkhet(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "disrupt-o-meter dom logger suite")
+}
+
+type PipelineMock struct {
+	callback    func(timesCalled int, messages []ChannelMessage)
+	timesCalled int
+}
+
+//Write formats all passed byte arrays into one final string
+func (p *PipelineMock) Write(messages []ChannelMessage) {
+	p.callback(p.timesCalled, messages)
+	p.timesCalled = p.timesCalled + 1
+}
+
+//GetLocation returns the location used to determin the date that is passed into the logs
+func (p *PipelineMock) GetLocation() *time.Location {
+	return time.Local
 }

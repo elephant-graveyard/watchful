@@ -20,15 +20,36 @@
 
 package logger
 
-import "time"
+//Factory is an interface that is capable of creating logger instances
+type Factory interface {
 
-//--
+	//NewChanneledLogger returns an new logger with the given name
+	NewChanneledLogger(name string) Logger
+}
 
-//Pipeline deinfes an interface that is capable of formatting a LoggerCoupler output
-type Pipeline interface {
-	//Write formats all passed byte arrays into one final string
-	Write(messages []ChannelMessage)
+//channeledLoggerFactory is a basic implementation of the Factory interface
+type channeledLoggerFactory struct {
+	loggerCount     int
+	channelProvider ChannelProvider
+}
 
-	//GetLocation returns the location used to determin the date that is passed into the logs
-	GetLocation() *time.Location
+//NewChanneledLogger returns a new logger instance.
+//It's id will simply be based on the amount of logger this factory created
+func (c *channeledLoggerFactory) NewChanneledLogger(name string) Logger {
+	loggerID := c.loggerCount
+	c.loggerCount = c.loggerCount + 1
+
+	return &simpleChanneledLogger{
+		id:             loggerID,
+		name:           name,
+		channelProvier: c.channelProvider,
+	}
+}
+
+//NewChanneledLoggerFactory creates a new instance of the factory, based on the channel provider instance
+func NewChanneledLoggerFactory(channelProvider ChannelProvider) Factory {
+	return &channeledLoggerFactory{
+		channelProvider: channelProvider,
+		loggerCount:     0,
+	}
 }

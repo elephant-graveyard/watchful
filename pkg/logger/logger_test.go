@@ -21,6 +21,8 @@
 package logger_test
 
 import (
+	"time"
+
 	. "github.com/homeport/disrupt-o-meter/pkg/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,13 +31,19 @@ import (
 var _ = Describe("Logger code test", func() {
 	Context("Testing default behaviour of logger instances", func() {
 		var (
-			logger          Logger
 			channelProvider ChannelProvider
+			pipeline        *PipelineMock
+			cluster         Cluster
+			loggerFactory   Factory
+			logger          Logger
 		)
 
 		BeforeEach(func() {
-			channelProvider = NewChannelProvider(1)
-			logger = NewChanneledLogger("test-logger", channelProvider)
+			channelProvider = NewChannelProvider(10)
+			pipeline = &PipelineMock{}
+			cluster = NewLoggerCluster(pipeline, channelProvider, time.Second*1)
+			loggerFactory = NewChanneledLoggerFactory(channelProvider)
+			logger = loggerFactory.NewChanneledLogger("test-logger")
 		})
 
 		It("Should have the correct name", func() {
@@ -48,5 +56,61 @@ var _ = Describe("Logger code test", func() {
 			Expect(channelProvider.Read().GetMessageAsString()).To(BeEquivalentTo("test"))
 			Expect(channelProvider.Read().GetMessageAsString()).To(BeEquivalentTo("more-tests"))
 		})
+
+		It("Should cluster same logs differently", func(done Done) {
+			pipeline.callback = func(i int, c []ChannelMessage) {
+				if c[0].GetMessageAsString() == "first" {
+					Expect(i).To(BeZero())
+				}
+				if c[0].GetMessageAsString() == "second" {
+					Expect(i).To(BeEquivalentTo(1))
+					close(done)
+				}
+			}
+
+			go cluster.StartListening()
+
+			logger.WriteString("first")
+			logger.WriteString("second")
+			close(channelProvider.GetChannel()) //Ends all communication as we wanna unit test on main thread
+		})
+
+		It("Should cluster different logs together", func(done Done) {
+			pipeline.callback = func(i int, c []ChannelMessage) {
+				Expect(len(c)).To(BeEquivalentTo(2))
+				Expect(c[0].GetMessageAsString()).To(BeEquivalentTo("first"))
+				Expect(c[1].GetMessageAsString()).To(BeEquivalentTo("second"))
+				close(done)
+			}
+
+			go cluster.StartListening()
+
+			logger.WriteString("first")
+			loggerFactory.NewChanneledLogger("other-logger").WriteString("second")
+			close(channelProvider.GetChannel()) //Ends all communication as we wanna unit test on main thread
+		})
+
+		It("Should cluster logs differently due to time", func(done Done) {
+			cluster = NewLoggerCluster(pipeline, channelProvider, time.Nanosecond)
+
+			pipeline.callback = func(i int, c []ChannelMessage) {
+				if c[0].GetMessageAsString() == "first" {
+					Expect(i).To(BeZero())
+				}
+				if c[0].GetMessageAsString() == "second" {
+					Expect(i).To(BeEquivalentTo(1))
+					close(done)
+				}
+			}
+
+			go cluster.StartListening()
+			go func() {
+				logger.WriteString("first")
+				time.Sleep(time.Second)
+				loggerFactory.NewChanneledLogger("other-logger").WriteString("second")
+
+				close(channelProvider.GetChannel()) //Ends all communication as we wanna unit test on main thread
+			}()
+		}, 5*1000) //We give the test a 5 second timeout, as we expect the loggers to take some time to call
 	})
 })

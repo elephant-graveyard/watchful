@@ -28,6 +28,9 @@ type Logger interface {
 	//GetName returns the name of the logger
 	GetName() string
 
+	//GetID returns the id of the logger
+	GetID() int
+
 	//Write simply writes a byte array to the logger. This will trigger all observers
 	Write(p []byte) (n int, err error)
 
@@ -41,34 +44,32 @@ type Logger interface {
 type simpleChanneledLogger struct {
 	channelProvier ChannelProvider
 	name           string
+	id             int
 }
 
 //GetChannelProvider returns the channel provider the Cluster wi
-func (m *simpleChanneledLogger) GetChannelProvider() ChannelProvider {
-	return m.channelProvier
+func (l *simpleChanneledLogger) GetChannelProvider() ChannelProvider {
+	return l.channelProvier
 }
 
 //GetName simply returns the name the logger instance was assigned on creation
-func (m *simpleChanneledLogger) GetName() string {
-	return m.name
+func (l *simpleChanneledLogger) GetName() string {
+	return l.name
+}
+
+//GetID returns the id the logger instance was assigned on creation
+func (l *simpleChanneledLogger) GetID() int {
+	return l.id
 }
 
 //Write simply stores the written string inside the buffer
-func (m *simpleChanneledLogger) Write(b []byte) (int, error) {
-	m.GetChannelProvider().Push(NewChannelMessage(m, b))
+func (l *simpleChanneledLogger) Write(b []byte) (int, error) {
+	l.GetChannelProvider().Push(NewChannelMessage(l, b))
 	return len(b), nil
 }
 
 //WriteString writes an entire string to the logger instance
-func (m *simpleChanneledLogger) WriteString(s string) error {
-	_, err := m.Write([]byte(s))
+func (l *simpleChanneledLogger) WriteString(s string) error {
+	_, err := l.Write([]byte(s))
 	return err
-}
-
-//NewChanneledLogger creates a new instance of the memStoredLogger
-func NewChanneledLogger(name string, channelProvider ChannelProvider) Logger {
-	return &simpleChanneledLogger{
-		name:           name,
-		channelProvier: channelProvider,
-	}
 }
