@@ -4,18 +4,21 @@ cf:
   api-endpoint: api.domain.com
   skip-ssl-validation: true
   custom-cli-parameters:
-  - "--verbose"
+  - --verbose
   username: username
   password: password
 
 tasks:
-- executable: "/bin/bash"
-  parameters:
-  - "-c"
-  - |-
-    !#/bin/bash
-    echo Hello World
-    ping -c 10 //github.com/homeport/disrupt-o-meter
+- cmd: /bin/bash
+  args:
+  - -c
+  - |
+    #!/bin/bash
+
+    set -euo pipefail
+
+    echo "Hello, World!"
+    ping -c 10 github.com
 
 merkhets:
 - name: app-pushability
