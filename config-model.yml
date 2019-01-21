@@ -1,0 +1,34 @@
+---
+cf:
+  domain: domain.com
+  api-endpoint: api.domain.com
+  skip-ssl-validation: true
+  custom-cli-parameters:
+  - "--verbose"
+  username: username
+  password: password
+
+tasks:
+- executable: "/bin/bash"
+  parameters:
+  - "-c"
+  - |-
+    !#/bin/bash
+    echo Hello World
+    ping -c 10 //github.com/homeport/disrupt-o-meter
+
+merkhets:
+- name: app-pushability
+  threshhold: '3%'
+- name: http-availability
+  threshhold: '10'
+- name: cf-log-functionality
+  threshhold: '42%'
+- name: cf-recent-log-functionality
+  threshhold: '0'
+- name: syslog-functionality
+  threshhold: '55.555%'
+
+logger-config:
+  time-location: UTC
+  print-logger-name: true
