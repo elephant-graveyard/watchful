@@ -40,16 +40,16 @@ var _ = Describe("Merkhet code test", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 0), 10, 0, true, callback)
 		})
 
-		It("Should have 1 merkhats", func() {
+		It("should have 1 merkhats", func() {
 			pool.StartWorker(merkhet)
 			Expect(pool.Size()).To(BeNumerically("==", 1))
 		})
 
-		It("Should have the correct name", func() {
+		It("should have the correct name", func() {
 			Expect(merkhet.Configuration().Name()).To(BeEquivalentTo("test-config"))
 		})
 
-		It("Should have installed", func() {
+		It("should have installed", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, &MerketCallback{
 				onInstall: func() {
 					Succeed()
@@ -65,22 +65,22 @@ var _ = Describe("Merkhet code test", func() {
 			pool.Shutdown()
 		})
 
-		It("Should pass the merkhet test using a flat config", func() {
+		It("should pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().Valid()).To(BeTrue())
 		})
 
-		It("Should not pass the merkhet test using a flat config", func() {
+		It("should not pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 1), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().Valid()).To(BeFalse())
 		})
 
-		It("Should pass the merkhet test using a percentage config", func() {
+		It("should pass the merkhet test using a percentage config", func() {
 			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.2), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().Valid()).To(BeTrue())
 		})
 
-		It("Should not pass the merkhet test using a percentage config", func() {
+		It("should not pass the merkhet test using a percentage config", func() {
 			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.1), 10, 2, true, callback)
 			Expect(merkhet.BuildResult().Valid()).To(BeFalse())
 		})

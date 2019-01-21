@@ -31,5 +31,3 @@ GO111MODULE=on ginkgo -r \
   --race \
   --trace \
   -v
-  
-  
