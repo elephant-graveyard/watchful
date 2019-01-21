@@ -20,50 +20,50 @@
 
 package merkhet
 
-//ControllerChannel is the channel type that is used to send consumers to the running Worker instance
+// ControllerChannel is the channel type that is used to send consumers to the running Worker instance
 type ControllerChannel chan func(merkhet Merkhet)
 
-//Worker is a wrapper for a created go routine that handles an existing merkhet instance running
+// Worker is a wrapper for a created go routine that handles an existing merkhet instance running
+//
+// ControllerChannel returns the controller channel this worker listens on
+//
+// Merkhet returns the merkhet instance the Worker wraps
+//
+// StartWorker starts the workers listening logic.
+// This has to be called in a different go routine, or it will block the calling routine
 type Worker interface {
-
-	//GetControllerChannel returns the controller channel this worker listens on
-	GetControllerChannel() ControllerChannel
-
-	//GetMerkhet returns the merkhet instance the Worker wraps
-	GetMerkhet() Merkhet
-
-	//Start worker starts the workers listening logic.
-	//This has to be called in a different go routine, or it will block the calling routine
+	ControllerChannel() ControllerChannel
+	Merkhet() Merkhet
 	StartWorker()
 }
 
-//simpleWorkerTask is a basic implementation of the Worker interface
-type simpleWorkerTask struct {
+// SimpleWorkerTask is a basic implementation of the Worker interface
+type SimpleWorkerTask struct {
 	merkhet Merkhet
 	master  ControllerChannel
 }
 
-//GetControllerChannel returns the controller channe this worker listens on
-func (s *simpleWorkerTask) GetControllerChannel() ControllerChannel {
+//ControllerChannel returns the controller channe this worker listens on
+func (s *SimpleWorkerTask) ControllerChannel() ControllerChannel {
 	return s.master
 }
 
-//GetMerkhet returns the merkhet instance the Worker wraps
-func (s *simpleWorkerTask) GetMerkhet() Merkhet {
+// Merkhet returns the merkhet instance the Worker wraps
+func (s *SimpleWorkerTask) Merkhet() Merkhet {
 	return s.merkhet
 }
 
-//Start worker starts the workers listening logic.
-//This has to be called in a different go routine, or it will block the calling routine
-func (s *simpleWorkerTask) StartWorker() {
-	for request := range s.GetControllerChannel() {
-		request(s.GetMerkhet())
+// StartWorker starts the workers listening logic.
+// This has to be called in a different go routine, or it will block the calling routine
+func (s *SimpleWorkerTask) StartWorker() {
+	for request := range s.ControllerChannel() {
+		request(s.Merkhet())
 	}
 }
 
-//NewMerkhetWorker returns a new implementation of the Worker instance
-func NewMerkhetWorker(merkhet Merkhet) Worker {
-	return &simpleWorkerTask{
+// NewMerkhetWorker returns a new implementation of the Worker instance
+func NewMerkhetWorker(merkhet Merkhet) *SimpleWorkerTask {
+	return &SimpleWorkerTask{
 		merkhet: merkhet,
 		master:  make(ControllerChannel),
 	}

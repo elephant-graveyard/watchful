@@ -20,35 +20,35 @@
 
 package logger
 
-//Factory is an interface that is capable of creating logger instances
+// Factory defines an object that is capable of creating ChanneledLogger instances
+//
+// NewChanneledLogger returns an new logger with the given name
 type Factory interface {
-
-	//NewChanneledLogger returns an new logger with the given name
-	NewChanneledLogger(name string) Logger
+	NewChanneledLogger(name string) *SimpleChanneledLogger
 }
 
-//channeledLoggerFactory is a basic implementation of the Factory interface
-type channeledLoggerFactory struct {
+// ChanneledLoggerFactory is a basic implementation of the Factory interface
+type ChanneledLoggerFactory struct {
 	loggerCount     int
 	channelProvider ChannelProvider
 }
 
-//NewChanneledLogger returns a new logger instance.
-//It's id will simply be based on the amount of logger this factory created
-func (c *channeledLoggerFactory) NewChanneledLogger(name string) Logger {
+// NewChanneledLogger returns a new logger instance.
+// It's id will simply be based on the amount of logger this factory created
+func (c *ChanneledLoggerFactory) NewChanneledLogger(name string) *SimpleChanneledLogger {
 	loggerID := c.loggerCount
 	c.loggerCount = c.loggerCount + 1
 
-	return &simpleChanneledLogger{
-		id:             loggerID,
-		name:           name,
-		channelProvier: c.channelProvider,
+	return &SimpleChanneledLogger{
+		id:              loggerID,
+		name:            name,
+		channelProvider: c.channelProvider,
 	}
 }
 
-//NewChanneledLoggerFactory creates a new instance of the factory, based on the channel provider instance
-func NewChanneledLoggerFactory(channelProvider ChannelProvider) Factory {
-	return &channeledLoggerFactory{
+// NewChanneledLoggerFactory creates a new instance of the factory, based on the channel provider instance
+func NewChanneledLoggerFactory(channelProvider ChannelProvider) *ChanneledLoggerFactory {
+	return &ChanneledLoggerFactory{
 		channelProvider: channelProvider,
 		loggerCount:     0,
 	}

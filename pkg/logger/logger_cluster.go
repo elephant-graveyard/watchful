@@ -25,28 +25,27 @@ import (
 	"time"
 )
 
-//--
-
-//Cluster defines a service that is capable of clustering loggers into on syncronized output
+// Cluster defines a service that is capable of clustering loggers into on syncronized output
+//
+// LoggerPipeline() returns the cluster instance the Cluster send the coupled ChannelMessages to
+//
+// ChannelProvider() returns the channel provider this Cluster uses
+//
+// StartListening() enables the Cluster instance to listen to the channel found in Cluster#getChannelProvider
+//
+// Flush() Flushes the cluster content to the pipeline
+//
+// WaitGroup() returns the waitgroup instance the cluster uses to identify if it is done running
 type Cluster interface {
-	//GetLoggerPipeline returns the cluster instance the Cluster send the coupled ChannelMessages to
-	GetLoggerPipeline() Pipeline
-
-	//GetChannelProvider returns the channel provider this Cluster uses
-	GetChannelProvider() ChannelProvider
-
-	//StartListening enables the Cluster instance to listen to the channel found in Cluster#getChannelProvider
+	LoggerPipeline() Pipeline
+	ChannelProvider() ChannelProvider
 	StartListening()
-
-	//Flushes the cluster content to the pipeline
 	Flush()
-
-	//GetWaitGroup returns the waitgroup instance the cluster uses to identify if it is done running
-	GetWaitGroup() *sync.WaitGroup
+	WaitGroup() *sync.WaitGroup
 }
 
-//simpleCluster is a default implementation of the Cluster interface
-type simpleCluster struct {
+// SimpleCluster is a default implementation of the Cluster interface
+type SimpleCluster struct {
 	pipe            Pipeline
 	channel         ChannelProvider
 	clusterDuration time.Duration
@@ -55,98 +54,98 @@ type simpleCluster struct {
 	nextCacheFlush  time.Time
 }
 
-//GetLoggerPipeline returns the upstream pipeline the Cluster sends all its data to
-func (s *simpleCluster) GetLoggerPipeline() Pipeline {
+// LoggerPipeline returns the upstream pipeline the Cluster sends all its data to
+func (s *SimpleCluster) LoggerPipeline() Pipeline {
 	return s.pipe
 }
 
-//GetChannelProvider returns the channel provider the Cluster wi
-func (s *simpleCluster) GetChannelProvider() ChannelProvider {
+// ChannelProvider returns the channel provider the Cluster wi
+func (s *SimpleCluster) ChannelProvider() ChannelProvider {
 	return s.channel
 }
 
-//StartListening enables the Cluster instance to listen to the channel found in Cluster#getChannelProvider
-//This will block all code executed, so use it in a go routine
-func (s *simpleCluster) StartListening() {
-	s.GetWaitGroup().Add(1)
+// StartListening enables the Cluster instance to listen to the channel found in Cluster#getChannelProvider
+// This will block all code executed, so use it in a go routine
+func (s *SimpleCluster) StartListening() {
+	s.WaitGroup().Add(1)
 
-	for incomingMessage := range s.GetChannelProvider().GetChannel() {
+	for incomingMessage := range s.ChannelProvider().Channel() {
 		if s.timedFlushNeeded() {
-			if s.isLoggerMessageCached(incomingMessage.GetLogger().GetID()) { //The message is not flushed this release
+			if s.isLoggerMessageCached(incomingMessage.Logger().ID()) { // The message is not flushed this release
 				s.Flush()
 				s.resetFlushTimer()
 
 				s.appendMessage(incomingMessage)
-			} else { //The message is flushed in this release
+			} else { // The message is flushed in this release
 				s.appendMessage(incomingMessage)
 
 				s.Flush()
 				s.resetFlushTimer()
 			}
-		} else { //Time wise we don't need to flush
-			if s.isLoggerMessageCached(incomingMessage.GetLogger().GetID()) { //Overwriting logger message, gotta flush
+		} else { // Time wise we don't need to flush
+			if s.isLoggerMessageCached(incomingMessage.Logger().ID()) { // Overwriting logger message, gotta flush
 				s.Flush()
 				s.resetFlushTimer()
 			}
 
-			s.appendMessage(incomingMessage) //Add message to either this or new release, depending on prev if
+			s.appendMessage(incomingMessage) // Add message to either this or new release, depending on prev if
 		}
 	}
 
 	s.Flush()
-	s.GetWaitGroup().Done()
+	s.WaitGroup().Done()
 }
 
-//Flush flushes all cached messages to the pipeline
-func (s *simpleCluster) Flush() {
+// Flush flushes all cached messages to the pipeline
+func (s *SimpleCluster) Flush() {
 	if len(s.messageCache) < 1 {
 		return
 	}
 
-	s.GetLoggerPipeline().Write(s.messageCache)
+	s.LoggerPipeline().Write(s.messageCache)
 	s.resetMessageCache()
 }
 
-//GetWaitGroup returns the waitgroup used to signal if the listening is running at the momement
-func (s *simpleCluster) GetWaitGroup() *sync.WaitGroup {
+// WaitGroup returns the waitgroup used to signal if the listening is running at the momement
+func (s *SimpleCluster) WaitGroup() *sync.WaitGroup {
 	return s.waitGroup
 }
 
-//resetMessageCache simply clears the message cache
-func (s *simpleCluster) resetMessageCache() {
-	s.messageCache = nil
+// resetMessageCache simply clears the message cache
+func (s *SimpleCluster) resetMessageCache() {
 	//signal the garbage collector to remove eventually cached array structure under it: https://stackoverflow.com/questions/16971741/how-do-you-clear-a-slice-in-go
 	//nil slices will still appedabe so we don't need to reallocate a slice instance using make
+	s.messageCache = nil
 }
 
-//isLoggerMessageCached returns if the logger id already has a cached ChannelMessage instance assigned
-func (s *simpleCluster) isLoggerMessageCached(loggerID int) bool {
+// isLoggerMessageCached returns if the logger id already has a cached ChannelMessage instance assigned
+func (s *SimpleCluster) isLoggerMessageCached(loggerID int) bool {
 	for _, i := range s.messageCache {
-		if i.GetLogger().GetID() == loggerID {
+		if i.Logger().ID() == loggerID {
 			return true
 		}
 	}
 	return false
 }
 
-//timedFlushNeeded returns if the cluster needs to flush its values due to the time limit being reached
-func (s *simpleCluster) timedFlushNeeded() bool {
+// timedFlushNeeded returns if the cluster needs to flush its values due to the time limit being reached
+func (s *SimpleCluster) timedFlushNeeded() bool {
 	return s.nextCacheFlush.Before(time.Now())
 }
 
-//resetFlushTimer resets the flush timer to now
-func (s *simpleCluster) resetFlushTimer() {
+// resetFlushTimer resets the flush timer to now
+func (s *SimpleCluster) resetFlushTimer() {
 	s.nextCacheFlush = time.Now().Add(s.clusterDuration)
 }
 
-//appendMessage adds a message to the message cache of the cluster
-func (s *simpleCluster) appendMessage(c ChannelMessage) {
+// appendMessage adds a message to the message cache of the cluster
+func (s *SimpleCluster) appendMessage(c ChannelMessage) {
 	s.messageCache = append(s.messageCache, c)
 }
 
-//NewLoggerCluster creates a new instance of the LoggerCluster inferface
-func NewLoggerCluster(pipeline Pipeline, channelProvider ChannelProvider, clusterDuration time.Duration) Cluster {
-	return &simpleCluster{
+// NewLoggerCluster creates a new instance of the LoggerCluster inferface
+func NewLoggerCluster(pipeline Pipeline, channelProvider ChannelProvider, clusterDuration time.Duration) *SimpleCluster {
+	return &SimpleCluster{
 		channel:         channelProvider,
 		pipe:            pipeline,
 		clusterDuration: clusterDuration,

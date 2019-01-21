@@ -42,12 +42,12 @@ type MerketCallback struct {
 }
 
 type MerkhetMock struct {
-	Configuration Configuration
-	Logger        logger.Logger
-	FailedRuns    uint
-	TotalRuns     uint
-	WillExecute   bool
-	Callback      *MerketCallback
+	Config      Configuration
+	LokggerMock logger.Logger
+	FailedRuns  uint
+	TotalRuns   uint
+	WillExecute bool
+	Callback    *MerketCallback
 }
 
 func (s *MerkhetMock) Install() {
@@ -69,39 +69,37 @@ func (s *MerkhetMock) Execute() {
 }
 
 func (s *MerkhetMock) BuildResult() Result {
-	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.GetConfiguration().IsValidRun(s.TotalRuns, s.FailedRuns))
+	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.Configuration().ValidRun(s.TotalRuns, s.FailedRuns))
 }
 
-func (s *MerkhetMock) GetConfiguration() Configuration {
-	return s.Configuration
+func (s *MerkhetMock) Configuration() Configuration {
+	return s.Config
 }
 
-func (s *MerkhetMock) GetLogger() logger.Logger {
-	return s.Logger
+func (s *MerkhetMock) Logger() logger.Logger {
+	return s.LokggerMock
 }
 
 func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute bool, callback *MerketCallback) *MerkhetMock {
 	return &MerkhetMock{
-		TotalRuns:     totalRuns,
-		FailedRuns:    fails,
-		WillExecute:   canExecute,
-		Configuration: config,
-		Logger:        NewLoggerMock(),
-		Callback:      callback,
+		TotalRuns:   totalRuns,
+		FailedRuns:  fails,
+		WillExecute: canExecute,
+		Config:      config,
+		LokggerMock: NewLoggerMock(),
+		Callback:    callback,
 	}
 }
-
-//--
 
 type LoggerMock struct {
 	Buffer *bytes.Buffer
 }
 
-func (l *LoggerMock) GetName() string {
+func (l *LoggerMock) Name() string {
 	return "LoggerMock"
 }
 
-func (l *LoggerMock) GetID() int {
+func (l *LoggerMock) ID() int {
 	return 0
 }
 
@@ -114,7 +112,7 @@ func (l *LoggerMock) WriteString(s string) error {
 	return err
 }
 
-func (l *LoggerMock) GetChannelProvider() logger.ChannelProvider {
+func (l *LoggerMock) ChannelProvider() logger.ChannelProvider {
 	return nil
 }
 

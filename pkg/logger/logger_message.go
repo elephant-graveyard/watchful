@@ -20,44 +20,43 @@
 
 package logger
 
-//--
-
-//ChannelMessage is the content of the Logger channel and contains the logger name as well as the message the logger produced
+// ChannelMessage is the content of the Logger channel and contains the logger name as well as the message the logger produced
+//
+// Logger returns the logger that send this message
+//
+// Message returns the message in it's raw byte form
+//
+// MessageAsString returns the message wrapped in a string
 type ChannelMessage interface {
-	//GetLogger returns the logger that send this message
-	GetLogger() Logger
-
-	//GetMessage returns the message in it's raw byte form
-	GetMessage() []byte
-
-	//GetMessageAsString returns the message wrapped in a string
-	GetMessageAsString() string
+	Logger() Logger
+	Message() []byte
+	MessageAsString() string
 }
 
-//simpleChannelMessage is a small implementation of the ChannelMessage interface
-type simpleChannelMessage struct {
+// SimpleChannelMessage is a small implementation of the ChannelMessage interface
+type SimpleChannelMessage struct {
 	logger  Logger
 	message []byte
 }
 
-//GetLogger returns the logger that send this message
-func (c *simpleChannelMessage) GetLogger() Logger {
+// Logger returns the logger that send this message
+func (c *SimpleChannelMessage) Logger() Logger {
 	return c.logger
 }
 
-//GetMessage returns the message in it's raw byte form
-func (c *simpleChannelMessage) GetMessage() []byte {
+// Message returns the message in it's raw byte form
+func (c *SimpleChannelMessage) Message() []byte {
 	return c.message
 }
 
-//Returns the message as string
-func (c *simpleChannelMessage) GetMessageAsString() string {
-	return string(c.GetMessage())
+// MessageAsString Returns the message as string
+func (c *SimpleChannelMessage) MessageAsString() string {
+	return string(c.Message())
 }
 
-//NewChannelMessage is a simple constructor for the ChannelMessage struct
-func NewChannelMessage(logger Logger, message []byte) ChannelMessage {
-	return &simpleChannelMessage{
+// NewChannelMessage is a simple constructor for the ChannelMessage struct
+func NewChannelMessage(logger Logger, message []byte) *SimpleChannelMessage {
+	return &SimpleChannelMessage{
 		logger:  logger,
 		message: message,
 	}

@@ -20,54 +20,56 @@
 
 package merkhet
 
-//Pool contains a map of registered merkhets as well as manages them
+// Pool contains a map of registered merkhets as well as manages them
+//
+// StartWorker pushes a new Merkhet instance to the Pool.
+// This method will also instantly start the worker sub routine
+//
+// Size returns the current size of the Pool
+//
+// ForEach executes the provided function for each Merkhet instance currently managed by the Pool
+//
+// Shutdown shuts the pool and it's workers down
 type Pool interface {
-	//StartWorker pushes a new Merkhet instance to the Pool
 	StartWorker(merkhet Merkhet)
-
-	//Size returns the current size of the Pool
 	Size() uint
-
-	//ForEach executes the provided function for each Merkhet instance currently managed by the Pool
 	ForEach(consumer func(m Merkhet))
-
-	//Shutdown shuts the pool and it's workers down
 	Shutdown()
 }
 
-//simplePool is a basic implementation of the MerkhetPool interface
-type simplePool struct {
-	Workers []Worker
+// SimplePool is a basic implementation of the MerkhetPool interface
+type SimplePool struct {
+	workers []Worker
 }
 
-//StartWorker pushes a new merkhet instance into the Pool
-func (s *simplePool) StartWorker(m Merkhet) {
+// StartWorker pushes a new merkhet instance into the Pool
+func (s *SimplePool) StartWorker(m Merkhet) {
 	worker := NewMerkhetWorker(m)
 	go worker.StartWorker() //Start the worker intance in a different go routine
 
-	s.Workers = append(s.Workers, worker)
+	s.workers = append(s.workers, worker)
 }
 
-//Size returns the size of the pool
-func (s *simplePool) Size() uint {
-	return uint(len(s.Workers))
+// Size returns the size of the pool
+func (s *SimplePool) Size() uint {
+	return uint(len(s.workers))
 }
 
-//ForEach executes the provided function for each Merkhet instance currently managed by the pool
-func (s *simplePool) ForEach(consumer func(m Merkhet)) {
-	for _, worker := range s.Workers {
-		worker.GetControllerChannel() <- consumer
+// ForEach executes the provided function for each Merkhet instance currently managed by the pool
+func (s *SimplePool) ForEach(consumer func(m Merkhet)) {
+	for _, worker := range s.workers {
+		worker.ControllerChannel() <- consumer
 	}
 }
 
-//Shutdown shuts the pool and it's workers down
-func (s *simplePool) Shutdown() {
-	for _, worker := range s.Workers {
-		close(worker.GetControllerChannel())
+// Shutdown shuts the pool and it's workers down
+func (s *SimplePool) Shutdown() {
+	for _, worker := range s.workers {
+		close(worker.ControllerChannel())
 	}
 }
 
-//NewPool returns a fresh empty instance of the go container
-func NewPool() Pool {
-	return &simplePool{}
+// NewPool returns a fresh empty instance of the go container
+func NewPool() *SimplePool {
+	return &SimplePool{}
 }

@@ -22,13 +22,12 @@ package logger
 
 import "time"
 
-//--
-
-//Pipeline deinfes an interface that is capable of formatting a LoggerCoupler output
+// Pipeline deinfes an interface that is capable of formatting a LoggerCoupler output
+//
+// Write formats all passed byte arrays into one final string
+//
+// Location returns the location used to determin the date that is passed into the logs
 type Pipeline interface {
-	//Write formats all passed byte arrays into one final string
 	Write(messages []ChannelMessage)
-
-	//GetLocation returns the location used to determin the date that is passed into the logs
-	GetLocation() *time.Location
+	Location() *time.Location
 }

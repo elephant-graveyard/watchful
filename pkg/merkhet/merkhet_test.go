@@ -46,7 +46,7 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("Should have the correct name", func() {
-			Expect(merkhet.GetConfiguration().GetName()).To(BeEquivalentTo("test-config"))
+			Expect(merkhet.Configuration().Name()).To(BeEquivalentTo("test-config"))
 		})
 
 		It("Should have installed", func() {
@@ -67,22 +67,22 @@ var _ = Describe("Merkhet code test", func() {
 
 		It("Should pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().IsValid()).To(BeTrue())
+			Expect(merkhet.BuildResult().Valid()).To(BeTrue())
 		})
 
 		It("Should not pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 1), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().IsValid()).To(BeFalse())
+			Expect(merkhet.BuildResult().Valid()).To(BeFalse())
 		})
 
 		It("Should pass the merkhet test using a percentage config", func() {
 			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.2), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().IsValid()).To(BeTrue())
+			Expect(merkhet.BuildResult().Valid()).To(BeTrue())
 		})
 
 		It("Should not pass the merkhet test using a percentage config", func() {
 			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.1), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().IsValid()).To(BeFalse())
+			Expect(merkhet.BuildResult().Valid()).To(BeFalse())
 		})
 	})
 })

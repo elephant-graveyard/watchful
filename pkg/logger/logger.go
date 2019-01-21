@@ -20,56 +20,56 @@
 
 package logger
 
-//Logger defines an observable logger
+// Logger defines an observable logger
+//
+// ChannelProvider returns the channel provider this Cluster uses
+//
+// Name returns the name of the logger
+//
+// ID returns the id of the logger
+//
+// Write simply writes a byte array to the logger
+//
+// WriteString writes all bytes of the string to the logger
 type Logger interface {
-	//GetChannelProvider returns the channel provider this Cluster uses
-	GetChannelProvider() ChannelProvider
-
-	//GetName returns the name of the logger
-	GetName() string
-
-	//GetID returns the id of the logger
-	GetID() int
-
-	//Write simply writes a byte array to the logger. This will trigger all observers
+	ChannelProvider() ChannelProvider
+	Name() string
+	ID() int
 	Write(p []byte) (n int, err error)
-
-	//WriteString writes all bytes of the string to the logger.
-	//This will also trigger observers
 	WriteString(s string) error
 }
 
-//simpleChanneledLogger is an implementation of the Logger interface that the loggers will use in order to store their logged values
-//It does not flush the written messages, instead it will store them in the buffer, ready to be read from the Coupler
-type simpleChanneledLogger struct {
-	channelProvier ChannelProvider
-	name           string
-	id             int
+// SimpleChanneledLogger is an implementation of the Logger interface that the loggers will use in order to store their logged values
+// It does not flush the written messages, instead it will store them in the buffer, ready to be read from the Coupler
+type SimpleChanneledLogger struct {
+	channelProvider ChannelProvider
+	name            string
+	id              int
 }
 
-//GetChannelProvider returns the channel provider the Cluster wi
-func (l *simpleChanneledLogger) GetChannelProvider() ChannelProvider {
-	return l.channelProvier
+// ChannelProvider returns the channel provider the Cluster wi
+func (l *SimpleChanneledLogger) ChannelProvider() ChannelProvider {
+	return l.channelProvider
 }
 
-//GetName simply returns the name the logger instance was assigned on creation
-func (l *simpleChanneledLogger) GetName() string {
+// Name simply returns the name the logger instance was assigned on creation
+func (l *SimpleChanneledLogger) Name() string {
 	return l.name
 }
 
-//GetID returns the id the logger instance was assigned on creation
-func (l *simpleChanneledLogger) GetID() int {
+// ID returns the id the logger instance was assigned on creation
+func (l *SimpleChanneledLogger) ID() int {
 	return l.id
 }
 
-//Write simply stores the written string inside the buffer
-func (l *simpleChanneledLogger) Write(b []byte) (int, error) {
-	l.GetChannelProvider().Push(NewChannelMessage(l, b))
+// Write simply stores the written string inside the buffer
+func (l *SimpleChanneledLogger) Write(b []byte) (int, error) {
+	l.ChannelProvider().Push(NewChannelMessage(l, b))
 	return len(b), nil
 }
 
-//WriteString writes an entire string to the logger instance
-func (l *simpleChanneledLogger) WriteString(s string) error {
+// WriteString writes an entire string to the logger instance
+func (l *SimpleChanneledLogger) WriteString(s string) error {
 	_, err := l.Write([]byte(s))
 	return err
 }

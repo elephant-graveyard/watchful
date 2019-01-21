@@ -20,49 +20,51 @@
 
 package logger
 
-//ChannelProvider is a small provider instance that provides a reference to the channel loggers use to communicate with the logger coupler instance
+// ChannelProvider is a small provider instance that provides a reference to the channel loggers use to communicate with the logger coupler instance
+//
+// Push(message ChannelMessage) pushes a message to the channel this channel provider is wrapping
+//
+// Read() ChannelMessage reads a channel message from the channel wrapped in this provider instance
+// This will block the executing go routine until a message is present in the channel
+//
+// Channel() Returns the actual wrapped channel instace that is being provided
 type ChannelProvider interface {
-
-	//Push pushes the channel message onto the channel
 	Push(message ChannelMessage)
-
-	//Read reads the channel message from the wrapped channel
 	Read() ChannelMessage
-
-	//GetChannel returns the wrapped channel instance
-	GetChannel() chan ChannelMessage
+	Channel() chan ChannelMessage
 }
 
-//simpleChannelProvider is a basic struct base implementation of the of ChannelProvider interface
-type simpleChannelProvider struct {
-	Channel     chan ChannelMessage
-	ChannelSize int
+// SimpleChannelProvider is a basic struct base implementation of the of ChannelProvider interface
+type SimpleChannelProvider struct {
+	channel     chan ChannelMessage
+	channelSize int
 }
 
-//Push pushes the channel message onto the channel
-func (c *simpleChannelProvider) Push(message ChannelMessage) {
-	if len(c.Channel) < c.ChannelSize {
-		c.GetChannel() <- message
+// Push pushes the channel message onto the channel
+func (c *SimpleChannelProvider) Push(message ChannelMessage) {
+	if len(c.channel) < c.channelSize {
+		c.Channel() <- message
 	} else {
 		go func() {
-			c.GetChannel() <- message
+			c.Channel() <- message
 		}()
 	}
 }
 
-//Read reads the channel message from the wrapped channel
-func (c *simpleChannelProvider) Read() ChannelMessage {
-	return <-c.GetChannel()
+// Read reads the channel message from the wrapped channel
+func (c *SimpleChannelProvider) Read() ChannelMessage {
+	return <-c.Channel()
 }
 
-func (c *simpleChannelProvider) GetChannel() chan ChannelMessage {
-	return c.Channel
+// Channel returns the channel this provider wrapps
+func (c *SimpleChannelProvider) Channel() chan ChannelMessage {
+	return c.channel
 }
 
-//NewChannelProvider returns a channel provider that wraps the passed channel instance
-func NewChannelProvider(size int) ChannelProvider {
-	return &simpleChannelProvider{
-		Channel:     make(chan ChannelMessage, size),
-		ChannelSize: size,
+// NewChannelProvider returns a channel provider that wraps the passed channel instance
+func NewChannelProvider(size int) *SimpleChannelProvider {
+	return &SimpleChannelProvider{
+		channel:     make(chan ChannelMessage, size),
+		channelSize: size,
 	}
 }

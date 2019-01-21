@@ -39,13 +39,13 @@ type PipelineMock struct {
 	timesCalled int
 }
 
-//Write formats all passed byte arrays into one final string
+// Write formats all passed byte arrays into one final string
 func (p *PipelineMock) Write(messages []ChannelMessage) {
 	p.callback(p.timesCalled, messages)
 	p.timesCalled = p.timesCalled + 1
 }
 
-//GetLocation returns the location used to determin the date that is passed into the logs
-func (p *PipelineMock) GetLocation() *time.Location {
+// Location returns the location used to determin the date that is passed into the logs
+func (p *PipelineMock) Location() *time.Location {
 	return time.Local
 }

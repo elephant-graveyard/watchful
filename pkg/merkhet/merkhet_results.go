@@ -20,50 +20,50 @@
 
 package merkhet
 
-//Result defines a statistic object that contains the data of a merkhet run
+// Result defines a statistic object that contains the data of a merkhet run
+//
+// TotalRuns returns the total amount of runs the merkhet instance ran
+// at the time this result instance was created
+//
+// FailedRuns returns the total amount of faild runs the merkhet instance that build
+// this result produced
+//
+// Valid returns if the result was marked valid by the Merkhet instance that build it
 type Result interface {
-
-	//GetTotalRuns returns the total amount of runs the merkhet instance ran
-	//at the time this result instance was created
-	GetTotalRuns() uint
-
-	//GetFailedRuns returns the total amount of faild runs the merkhet instance that build
-	//this result produced
-	GetFailedRuns() uint
-
-	//IsValid returns if the result was marked valid by the Merkhet instance that build it
-	IsValid() bool
+	TotalRuns() uint
+	FailedRuns() uint
+	Valid() bool
 }
 
-//simpleResult is a small implementation of the Result interface
-type simpleResult struct {
-	TotalRuns  uint
-	FailedRuns uint
-	Valid      bool
+// SimpleResult is a small implementation of the Result interface
+type SimpleResult struct {
+	totalRuns  uint
+	totalFails uint
+	valid      bool
 }
 
-//GetTotalRuns returns the total amount of runs the merkhet instance ran
-//at the time this result instance was created
-func (s *simpleResult) GetTotalRuns() uint {
-	return s.TotalRuns
+// TotalRuns returns the total amount of runs the merkhet instance ran
+// at the time this result instance was created
+func (s *SimpleResult) TotalRuns() uint {
+	return s.totalRuns
 }
 
-//GetFailedRuns returns the total amount of faild runs the merkhet instance that build
-//this result produced
-func (s *simpleResult) GetFailedRuns() uint {
-	return s.FailedRuns
+// FailedRuns returns the total amount of faild runs the merkhet instance that build
+// this result produced
+func (s *SimpleResult) FailedRuns() uint {
+	return s.totalFails
 }
 
-//IsValid returns if the result was marked valid by the Merkhet instance that build it
-func (s *simpleResult) IsValid() bool {
-	return s.Valid
+// Valid returns if the result was marked valid by the Merkhet instance that build it
+func (s *SimpleResult) Valid() bool {
+	return s.valid
 }
 
-//NewMerkhetResult creates a new instance of the MerkhetResult interface
-func NewMerkhetResult(totalRuns uint, failedRuns uint, valid bool) Result {
-	return &simpleResult{
-		TotalRuns:  totalRuns,
-		FailedRuns: failedRuns,
-		Valid:      valid,
+// NewMerkhetResult creates a new instance of the MerkhetResult interface
+func NewMerkhetResult(totalRuns uint, failedRuns uint, valid bool) *SimpleResult {
+	return &SimpleResult{
+		totalRuns:  totalRuns,
+		totalFails: failedRuns,
+		valid:      valid,
 	}
 }

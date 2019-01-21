@@ -47,22 +47,22 @@ var _ = Describe("Logger code test", func() {
 		})
 
 		It("Should have the correct name", func() {
-			Expect(logger.GetName()).To(BeEquivalentTo("test-logger"))
+			Expect(logger.Name()).To(BeEquivalentTo("test-logger"))
 		})
 
 		It("Should forward messages correctly", func() {
 			logger.WriteString("test")
 			logger.WriteString("more-tests")
-			Expect(channelProvider.Read().GetMessageAsString()).To(BeEquivalentTo("test"))
-			Expect(channelProvider.Read().GetMessageAsString()).To(BeEquivalentTo("more-tests"))
+			Expect(channelProvider.Read().MessageAsString()).To(BeEquivalentTo("test"))
+			Expect(channelProvider.Read().MessageAsString()).To(BeEquivalentTo("more-tests"))
 		})
 
 		It("Should cluster same logs differently", func(done Done) {
 			pipeline.callback = func(i int, c []ChannelMessage) {
-				if c[0].GetMessageAsString() == "first" {
+				if c[0].MessageAsString() == "first" {
 					Expect(i).To(BeZero())
 				}
-				if c[0].GetMessageAsString() == "second" {
+				if c[0].MessageAsString() == "second" {
 					Expect(i).To(BeEquivalentTo(1))
 					close(done)
 				}
@@ -72,14 +72,14 @@ var _ = Describe("Logger code test", func() {
 
 			logger.WriteString("first")
 			logger.WriteString("second")
-			close(channelProvider.GetChannel()) //Ends all communication as we wanna unit test on main thread
+			close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 		})
 
 		It("Should cluster different logs together", func(done Done) {
 			pipeline.callback = func(i int, c []ChannelMessage) {
 				Expect(len(c)).To(BeEquivalentTo(2))
-				Expect(c[0].GetMessageAsString()).To(BeEquivalentTo("first"))
-				Expect(c[1].GetMessageAsString()).To(BeEquivalentTo("second"))
+				Expect(c[0].MessageAsString()).To(BeEquivalentTo("first"))
+				Expect(c[1].MessageAsString()).To(BeEquivalentTo("second"))
 				close(done)
 			}
 
@@ -87,17 +87,17 @@ var _ = Describe("Logger code test", func() {
 
 			logger.WriteString("first")
 			loggerFactory.NewChanneledLogger("other-logger").WriteString("second")
-			close(channelProvider.GetChannel()) //Ends all communication as we wanna unit test on main thread
+			close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 		})
 
 		It("Should cluster logs differently due to time", func(done Done) {
 			cluster = NewLoggerCluster(pipeline, channelProvider, time.Nanosecond)
 
 			pipeline.callback = func(i int, c []ChannelMessage) {
-				if c[0].GetMessageAsString() == "first" {
+				if c[0].MessageAsString() == "first" {
 					Expect(i).To(BeZero())
 				}
-				if c[0].GetMessageAsString() == "second" {
+				if c[0].MessageAsString() == "second" {
 					Expect(i).To(BeEquivalentTo(1))
 					close(done)
 				}
@@ -109,8 +109,8 @@ var _ = Describe("Logger code test", func() {
 				time.Sleep(time.Second)
 				loggerFactory.NewChanneledLogger("other-logger").WriteString("second")
 
-				close(channelProvider.GetChannel()) //Ends all communication as we wanna unit test on main thread
+				close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 			}()
-		}, 5*1000) //We give the test a 5 second timeout, as we expect the loggers to take some time to call
+		}, 5*1000) // We give the test a 5 second timeout, as we expect the loggers to take some time to call
 	})
 })
