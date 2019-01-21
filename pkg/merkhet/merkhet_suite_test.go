@@ -32,7 +32,7 @@ import (
 
 func TestMerkhet(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter dom merkhet suite")
+	RunSpecs(t, "disrupt-o-meter pkg merkhet suite")
 }
 
 type MerketCallback struct {

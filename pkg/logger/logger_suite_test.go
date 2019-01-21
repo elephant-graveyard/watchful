@@ -31,7 +31,7 @@ import (
 
 func TestMerkhet(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter dom logger suite")
+	RunSpecs(t, "disrupt-o-meter pkg logger suite")
 }
 
 type PipelineMock struct {

@@ -36,7 +36,7 @@ import (
 
 func TestDom(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter dom suite")
+	RunSpecs(t, "disrupt-o-meter internal suite")
 }
 
 type CloudFoundry struct {
