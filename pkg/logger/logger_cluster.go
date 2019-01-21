@@ -31,7 +31,8 @@ import (
 //
 // ChannelProvider() returns the channel provider this Cluster uses
 //
-// StartListening() enables the Cluster instance to listen to the channel found in Cluster#getChannelProvider
+// StartListening enables the Cluster instance to listen to the channel provided to the cluster
+// This will block all code executed, so use it in a go routine
 //
 // Flush() Flushes the cluster content to the pipeline
 //
@@ -64,7 +65,7 @@ func (s *SimpleCluster) ChannelProvider() ChannelProvider {
 	return s.channel
 }
 
-// StartListening enables the Cluster instance to listen to the channel found in Cluster#getChannelProvider
+// StartListening enables the Cluster instance to listen to the channel provided to the cluster
 // This will block all code executed, so use it in a go routine
 func (s *SimpleCluster) StartListening() {
 	s.WaitGroup().Add(1)
