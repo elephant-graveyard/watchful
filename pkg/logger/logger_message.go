@@ -18,12 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package logger
 
-import (
-	"github.com/homeport/disrupt-o-meter/internal/dom/cmd"
-)
+// ChannelMessage is a small struct containing the content of a message send from a logger
+type ChannelMessage struct {
+	Logger  Logger
+	Message []byte
+}
 
-func main() {
-	cmd.Execute()
+// MessageAsString Returns the message as string
+func (c ChannelMessage) MessageAsString() string {
+	return string(c.Message)
+}
+
+// NewChannelMessage is a simple constructor for the ChannelMessage struct
+func NewChannelMessage(logger Logger, message []byte) ChannelMessage {
+	return ChannelMessage{
+		Logger:  logger,
+		Message: message,
+	}
 }
