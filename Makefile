@@ -18,13 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-.PHONY: all clean test build
+.PHONY: all clean analyse test build
 
-all: test build
+all: analyse test build
 
 clean:
 	@rm -rf binaries
 	@GO111MODULE=on go clean -r -cache
+
+analyse:
+	@scripts/check.sh
 
 test:
 	@shellcheck scripts/*.sh
