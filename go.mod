@@ -4,6 +4,7 @@ require (
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190114203233-22d02065b53f
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
 	github.com/homeport/gonvenience v1.6.0

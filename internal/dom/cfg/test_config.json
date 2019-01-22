@@ -1,0 +1,47 @@
+{
+    "cf": {
+        "domain": "file-json-test.com",
+        "api-endpoint": "a.test.com",
+        "skip-ssl-validation": true,
+        "custom-cli-parameters": [
+            "--test"
+        ],
+        "username": "testuser",
+        "password": "test_password"
+    },
+    "tasks": [
+        {
+            "cmd": "/bin/bash",
+            "args": [
+                "-c",
+                "#!/bin/bash\n\nset -euo pipefail\n\necho \"Hello, World!\"\nping -c 10 github.com\n"
+            ]
+        }
+    ],
+    "merkhets": [
+        {
+            "name": "app-pushability",
+            "threshhold": "3%"
+        },
+        {
+            "name": "http-availability",
+            "threshhold": "10"
+        },
+        {
+            "name": "cf-log-functionality",
+            "threshhold": "42%"
+        },
+        {
+            "name": "cf-recent-log-functionality",
+            "threshhold": "0"
+        },
+        {
+            "name": "syslog-functionality",
+            "threshhold": "55.555%"
+        }
+    ],
+    "logger-config": {
+        "time-location": "UTC",
+        "print-logger-name": true
+    }
+}
