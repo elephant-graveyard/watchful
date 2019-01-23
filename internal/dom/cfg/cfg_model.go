@@ -22,36 +22,36 @@ package cfg
 
 // DOMConfig is a structure defining the configuration of the disrupt-o-meter
 type DOMConfig struct {
-	CloudFoundryConfig    CloudFoundryConfig     `json:"cf"`
-	TaskConfigurations    []TaskConfiguration    `json:"tasks"`
-	MerkhetConfigurations []MerkhetConfiguration `json:"merkhets"`
-	LoggerConfiguration   LoggerConfiguration    `json:"logger-config"`
+	CloudFoundryConfig    CloudFoundryConfig     `yaml:"cf"`
+	TaskConfigurations    []TaskConfiguration    `yaml:"tasks"`
+	MerkhetConfigurations []MerkhetConfiguration `yaml:"merkhets"`
+	LoggerConfiguration   LoggerConfiguration    `yaml:"logger-config"`
 }
 
 // CloudFoundryConfig contains the config to connect and communicate with the cloud foundry instance
 type CloudFoundryConfig struct {
-	Domain              string   `json:"domain"`
-	APIEndPoint         string   `json:"api-endpoint"`
-	SkipSSLValidation   bool     `json:"skip-ssl-validation"`
-	CustomCLIParameters []string `json:"custom-cli-parameters"`
-	Username            string   `json:"username"`
-	Password            string   `json:"password"`
+	Domain              string   `yaml:"domain"`
+	APIEndPoint         string   `yaml:"api-endpoint"`
+	SkipSSLValidation   bool     `yaml:"skip-ssl-validation"`
+	CustomCLIParameters []string `yaml:"custom-cli-parameters"`
+	Username            string   `yaml:"username"`
+	Password            string   `yaml:"password"`
 }
 
 // TaskConfiguration is the configuration for a simply task that is executed against the cloud foundry instance
 type TaskConfiguration struct {
-	Executable string   `json:"cmd"`
-	Parameters []string `json:"args"`
+	Executable string   `yaml:"cmd"`
+	Parameters []string `yaml:"args"`
 }
 
 // MerkhetConfiguration is the configuration of one merkhet instance running
 type MerkhetConfiguration struct {
-	Name       string `json:"name"`
-	Threshhold string `json:"threshhold"`
+	Name       string `yaml:"name"`
+	Threshhold string `yaml:"threshhold"`
 }
 
 // LoggerConfiguration is the config for the logger system dom uses
 type LoggerConfiguration struct {
-	TimeLocation    string `json:"time-location"`
-	PrintLoggerName bool   `json:"print-logger-name"`
+	TimeLocation    string `yaml:"time-location"`
+	PrintLoggerName bool   `yaml:"print-logger-name"`
 }

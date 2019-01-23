@@ -38,7 +38,7 @@ var _ = Describe("Configuration testing", func() {
 		})
 
 		It("Should read the config from the model yaml file", func() {
-			Expect(cfg.ParseYamlFromFile("./test_config.yml", &config)).To(BeNil())
+			Expect(cfg.ParseFromFile("./test_config.yml", &config)).To(BeNil())
 
 			Expect(config.CloudFoundryConfig.SkipSSLValidation).To(BeTrue())
 			Expect(config.CloudFoundryConfig.Domain).To(BeEquivalentTo("file-yaml-test.com"))
@@ -55,14 +55,14 @@ cf:
   username: test_user
   password: test_password`
 
-			Expect(cfg.ParseYamlFromString(body, &config)).To(BeNil())
+			Expect(cfg.ParseFromString(body, &config)).To(BeNil())
 
 			Expect(config.CloudFoundryConfig.SkipSSLValidation).To(BeTrue())
 			Expect(config.CloudFoundryConfig.Domain).To(BeEquivalentTo("string-yaml-test.com"))
 		})
 
 		It("Should read the config from the model json file", func() {
-			Expect(cfg.ParseJSONFromFile("./test_config.json", &config)).To(BeNil())
+			Expect(cfg.ParseFromFile("./test_config.json", &config)).To(BeNil())
 
 			Expect(config.CloudFoundryConfig.SkipSSLValidation).To(BeTrue())
 			Expect(config.CloudFoundryConfig.Domain).To(BeEquivalentTo("file-json-test.com"))
@@ -71,7 +71,7 @@ cf:
 		It("Should read the config from a string json", func() {
 			var body string = `{"cf":{"domain":"string-json-test.com","api-endpoint":"a.test.com","skip-ssl-validation":true,"custom-cli-parameters":["--test"],"username":"testuser","password":"test_password"}}`
 
-			Expect(cfg.ParseYamlFromString(body, &config)).To(BeNil())
+			Expect(cfg.ParseFromString(body, &config)).To(BeNil())
 
 			Expect(config.CloudFoundryConfig.SkipSSLValidation).To(BeTrue())
 			Expect(config.CloudFoundryConfig.Domain).To(BeEquivalentTo("string-json-test.com"))

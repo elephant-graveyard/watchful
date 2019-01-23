@@ -21,16 +21,15 @@
 package cfg
 
 import (
-	"encoding/json"
 	"io/ioutil"
 
-	"github.com/ghodss/yaml"
+	yaml "gopkg.in/yaml.v2"
 )
 
-// ParseYamlFromFile parses the contents of the file located under the given string
+// ParseFromFile parses the contents of the file located under the given string
 // into the config instance passed as the second parameter.
 // The function returns an error if one occured or nil if everything worked fine
-func ParseYamlFromFile(file string, config interface{}) error {
+func ParseFromFile(file string, config interface{}) error {
 	fileContent, e := ioutil.ReadFile(file)
 	if e != nil {
 		return e
@@ -39,28 +38,9 @@ func ParseYamlFromFile(file string, config interface{}) error {
 	return yaml.Unmarshal(fileContent, config)
 }
 
-// ParseYamlFromString parses contents of the string provided as a parameter
+// ParseFromString parses contents of the string provided as a parameter
 // into the config instance passed as the second parameter.
 // The function returns an error if one occured or nil if everything worked fine
-func ParseYamlFromString(content string, config interface{}) error {
+func ParseFromString(content string, config interface{}) error {
 	return yaml.Unmarshal([]byte(content), config)
-}
-
-// ParseJSONFromFile parses the contents of the file located under the given string
-// into the config instance passed as the second parameter.
-// The function returns an error if one occured or nil if everything worked fine
-func ParseJSONFromFile(file string, config interface{}) error {
-	fileContent, e := ioutil.ReadFile(file)
-	if e != nil {
-		return e
-	}
-
-	return json.Unmarshal(fileContent, config)
-}
-
-// ParseJSONFromString parses contents of the string provided as a parameter
-// into the config instance passed as the second parameter.
-// The function returns an error if one occured or nil if everything worked fine
-func ParseJSONFromString(content string, config interface{}) error {
-	return json.Unmarshal([]byte(content), config)
 }
