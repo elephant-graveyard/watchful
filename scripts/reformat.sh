@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 find . -type f -name '*.go' -print0 | xargs -0 gofmt -s -e -l -w #-s to try to simpifly code, -e to print errors, -w to write improved version to actual file
 echo "Formatted all go files using gofmt"
