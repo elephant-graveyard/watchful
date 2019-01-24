@@ -42,13 +42,7 @@ type SimpleChannelProvider struct {
 
 // Push pushes the channel message onto the channel
 func (c *SimpleChannelProvider) Push(message ChannelMessage) {
-	if len(c.channel) < c.channelSize {
-		c.Channel() <- message
-	} else {
-		go func() {
-			c.Channel() <- message
-		}()
-	}
+	c.Channel() <- message
 }
 
 // Read reads the channel message from the wrapped channel

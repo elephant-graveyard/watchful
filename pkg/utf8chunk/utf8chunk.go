@@ -17,40 +17,25 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package logger_test
 
-import (
-	"os"
-	"testing"
-	"time"
+package utf8chunk
 
-	. "github.com/homeport/disrupt-o-meter/pkg/logger"
+import "regexp"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+// ColorEscapeSeq is the escape sequence for a color
+const ColorEscapeSeq = "\x1b"
+
+var (
+
+	// BeginsWithColorPattern is the regex matching.
+	// We are compiling it once, as regex is not the fastes
+	BeginsWithColorPattern = regexp.MustCompile(ColorEscapeSeq + `\[\d+(;\d+)*m`)
 )
 
-func TestMerkhet(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg logger suite")
-}
-
-type PipelineMock struct {
-	callback    func(timesCalled int, messages []ChannelMessage)
-	timesCalled int
-}
-
-// Write formats all passed byte arrays into one final string
-func (p *PipelineMock) Write(messages []ChannelMessage) {
-	p.callback(p.timesCalled, messages)
-	p.timesCalled = p.timesCalled + 1
-}
-
-func (p *PipelineMock) Observer(o PipelineObserver) {
-	os.Exit(1)
-}
-
-// Location returns the location used to determin the date that is passed into the logs
-func (p *PipelineMock) Location() *time.Location {
-	return time.Local
+// RemoveStartingColour removes the first colour code at index 0 of the string
+func RemoveStartingColour(s string) (tail string, colour string) {
+	if l := BeginsWithColorPattern.FindStringIndex(s); l != nil && l[0] == 0 {
+		return s[l[1]:], s[l[0]:l[1]]
+	}
+	return s, ""
 }
