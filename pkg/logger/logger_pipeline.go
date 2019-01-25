@@ -28,6 +28,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/homeport/gonvenience/pkg/v1/bunt"
+
 	"github.com/homeport/disrupt-o-meter/pkg/utf8chunk"
 
 	"github.com/homeport/gonvenience/pkg/v1/term"
@@ -103,7 +105,7 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 
 			if line < len(groupArray) {
 				groupOutput := groupArray[line]
-				output += groupOutput + strings.Repeat(" ", s.config.CharacterPerPipe-len(groupOutput))
+				output += groupOutput + strings.Repeat(" ", s.config.CharacterPerPipe-bunt.PlainTextLength(groupOutput)) + "\u001b[0m"
 				empty = false
 			} else {
 				output += strings.Repeat(" ", s.config.CharacterPerPipe)
@@ -115,7 +117,8 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 				observer(output)
 			}
 
-			fmt.Fprintln(s.writer, time.Now().Format(TimeFormat)+output)
+			fmt.Fprintf(s.writer, "%s", time.Now().Format(TimeFormat)+output)
+			fmt.Fprint(s.writer, "\n")
 			empty = true // Reset for next run
 		} else {
 			break

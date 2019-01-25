@@ -139,10 +139,10 @@ var _ = Describe("Logger code test", func() {
 
 			go func() {
 				for i := 0; i < 20; i++ {
-					logger.WriteString("first logger")
+					logger.WriteString("\033[31mfirst logger")
 					other.WriteString("second logger")
 				}
-				other.WriteString("done")
+				other.WriteString("\033[32mdone")
 				close(channelProvider.Channel())
 			}()
 		}, 5*1000)
