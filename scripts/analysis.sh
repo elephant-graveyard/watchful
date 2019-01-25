@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# We set the exit status to return 1 so that the check script will error if the code does not follow the conventions implied by go
+# We set the exit status to return 1 so that the analysis script will error if the code does not follow the conventions implied by go
 GO111MODULE=on golint --set_exit_status ./...
 echo "All found go files passed golint tests"
 
