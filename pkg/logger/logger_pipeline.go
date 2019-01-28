@@ -21,8 +21,10 @@
 package logger
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -209,6 +211,11 @@ func NewSplitPipelineConfig(showLoggerName bool, location time.Location, tWidth 
 
 	tWidth -= len(TimeFormat)
 	var groupCount = maxLoggerGroup + 1
+	charactersPerPipe := tWidth/groupCount - (len(PipelineSeperator) * (groupCount - 1))
+
+	if charactersPerPipe < 1 {
+		panic(errors.New("The provided console length is too small -> " + strconv.Itoa(charactersPerPipe)))
+	}
 
 	return SplitPipelineConfig{
 		ShowLoggerName:   showLoggerName,
@@ -216,6 +223,6 @@ func NewSplitPipelineConfig(showLoggerName bool, location time.Location, tWidth 
 		TerminalWidth:    tWidth,
 		LoggerGroup:      loggerGroups,
 		LoggerGroupCount: groupCount,
-		CharacterPerPipe: tWidth/groupCount - (len(PipelineSeperator) * (groupCount - 1)),
+		CharacterPerPipe: charactersPerPipe,
 	}
 }
