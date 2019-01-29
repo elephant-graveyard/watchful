@@ -21,23 +21,23 @@
     "merkhets": [
         {
             "name": "app-pushability",
-            "threshhold": "3%"
+            "threshold": "3%"
         },
         {
             "name": "http-availability",
-            "threshhold": "10"
+            "threshold": "10"
         },
         {
             "name": "cf-log-functionality",
-            "threshhold": "42%"
+            "threshold": "42%"
         },
         {
             "name": "cf-recent-log-functionality",
-            "threshhold": "0"
+            "threshold": "0"
         },
         {
             "name": "syslog-functionality",
-            "threshhold": "55.555%"
+            "threshold": "55.555%"
         }
     ],
     "logger-config": {

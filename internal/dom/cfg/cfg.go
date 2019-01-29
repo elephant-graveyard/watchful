@@ -35,12 +35,12 @@ func ParseFromFile(file string, config interface{}) error {
 		return e
 	}
 
-	return yaml.Unmarshal(fileContent, config)
+	return yaml.UnmarshalStrict(fileContent, config)
 }
 
 // ParseFromString parses contents of the string provided as a parameter
 // into the config instance passed as the second parameter.
 // The function returns an error if one occurred or nil if everything worked fine
 func ParseFromString(content string, config interface{}) error {
-	return yaml.Unmarshal([]byte(content), config)
+	return yaml.UnmarshalStrict([]byte(content), config)
 }
