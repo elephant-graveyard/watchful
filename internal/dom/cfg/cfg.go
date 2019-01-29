@@ -17,40 +17,30 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package logger_test
+
+package cfg
 
 import (
-	"os"
-	"testing"
-	"time"
+	"io/ioutil"
 
-	. "github.com/homeport/disrupt-o-meter/pkg/logger"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	yaml "gopkg.in/yaml.v2"
 )
 
-func TestMerkhet(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg logger suite")
+// ParseFromFile parses the contents of the file located under the given string
+// into the config instance passed as the second parameter.
+// The function returns an error if one occurred or nil if everything worked fine
+func ParseFromFile(file string, config interface{}) error {
+	fileContent, e := ioutil.ReadFile(file)
+	if e != nil {
+		return e
+	}
+
+	return yaml.Unmarshal(fileContent, config)
 }
 
-type PipelineMock struct {
-	callback    func(timesCalled int, messages []ChannelMessage)
-	timesCalled int
-}
-
-// Write formats all passed byte arrays into one final string
-func (p *PipelineMock) Write(messages []ChannelMessage) {
-	p.callback(p.timesCalled, messages)
-	p.timesCalled = p.timesCalled + 1
-}
-
-func (p *PipelineMock) Observer(o PipelineObserver) {
-	os.Exit(1)
-}
-
-// Location returns the location used to determin the date that is passed into the logs
-func (p *PipelineMock) Location() *time.Location {
-	return time.Local
+// ParseFromString parses contents of the string provided as a parameter
+// into the config instance passed as the second parameter.
+// The function returns an error if one occurred or nil if everything worked fine
+func ParseFromString(content string, config interface{}) error {
+	return yaml.Unmarshal([]byte(content), config)
 }

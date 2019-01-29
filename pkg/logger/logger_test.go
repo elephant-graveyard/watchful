@@ -21,6 +21,8 @@
 package logger_test
 
 import (
+	"os"
+	"strings"
 	"time"
 
 	. "github.com/homeport/disrupt-o-meter/pkg/logger"
@@ -112,5 +114,37 @@ var _ = Describe("Logger code test", func() {
 				close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 			}()
 		}, 5*1000) // We give the test a 5 second timeout, as we expect the loggers to take some time to call
+
+		It("should chunk slices correctly", func() {
+			first, second, third, fourth := "11111", "2222\n2", "\033[31m"+"33333", "44"+"\033[31m"+"444"
+
+			result := ChunkSlice(first+second+third+fourth, 4)
+
+			Expect(len(result)).To(BeEquivalentTo(5))
+		})
+
+		It("Should send messages to the terminal correctly", func(done Done) {
+			loggerGroupConfig := []int{0, 1}
+			p := NewSplitPipeline(NewSplitPipelineConfig(true, *time.FixedZone("UTC", 0), 80, loggerGroupConfig), os.Stdout) // 200 is the fixed size of a terminal this thing will use, as ginkgo overwrites it
+			c := NewLoggerCluster(p, channelProvider, time.Second)
+			other := loggerFactory.NewChanneledLogger("other")
+			p.Observer(func(s string) {
+				if strings.Contains(s, "done") {
+					Succeed()
+					close(done)
+				} else {
+					Expect(s).To(ContainSubstring("[%s]", logger.Name()))
+				}
+			})
+
+			go c.StartListening()
+
+			go func() {
+				logger.WriteString("\033[31m1")
+				logger.WriteString("\033[31m2")
+				other.WriteString("\033[32mdone")
+				close(channelProvider.Channel())
+			}()
+		}, 5*1000)
 	})
 })

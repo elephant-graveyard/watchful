@@ -17,40 +17,34 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package logger_test
+
+package utf8chunk_test
 
 import (
-	"os"
-	"testing"
-	"time"
-
-	. "github.com/homeport/disrupt-o-meter/pkg/logger"
-
+	"github.com/homeport/disrupt-o-meter/pkg/utf8chunk"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestMerkhet(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg logger suite")
-}
+var _ = Describe("UTF8 Chunk util test", func() {
+	Context("Tests if the util methods work correctly", func() {
+		It("should remove the first colour code", func() {
+			code := "\033[31m"
+			message := "test"
 
-type PipelineMock struct {
-	callback    func(timesCalled int, messages []ChannelMessage)
-	timesCalled int
-}
+			m, c := utf8chunk.RemoveStartingColour(code + message)
 
-// Write formats all passed byte arrays into one final string
-func (p *PipelineMock) Write(messages []ChannelMessage) {
-	p.callback(p.timesCalled, messages)
-	p.timesCalled = p.timesCalled + 1
-}
+			Expect(m).To(BeEquivalentTo(message))
+			Expect(c).To(BeEquivalentTo(code))
+		})
 
-func (p *PipelineMock) Observer(o PipelineObserver) {
-	os.Exit(1)
-}
+		It("should just returns the default", func() {
+			message := "test"
 
-// Location returns the location used to determin the date that is passed into the logs
-func (p *PipelineMock) Location() *time.Location {
-	return time.Local
-}
+			m, c := utf8chunk.RemoveStartingColour(message)
+
+			Expect(m).To(BeEquivalentTo(message))
+			Expect(c).To(BeEquivalentTo(""))
+		})
+	})
+})
