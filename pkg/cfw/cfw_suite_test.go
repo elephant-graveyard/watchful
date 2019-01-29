@@ -18,11 +18,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cfw
+package cfw_test
 
-// CloudFoundryCertificate is a strcut containing the needed login information for a cloud foundry intance
-type CloudFoundryCertificate struct {
-	APIEndPoint string
-	Username    string
-	Password    string
+import (
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+func TestMerkhet(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "disrupt-o-meter pkg cfw suite")
 }

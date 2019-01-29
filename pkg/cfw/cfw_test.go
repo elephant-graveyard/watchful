@@ -18,11 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cfw
+package cfw_test
 
-// CloudFoundryCertificate is a strcut containing the needed login information for a cloud foundry intance
-type CloudFoundryCertificate struct {
-	APIEndPoint string
-	Username    string
-	Password    string
-}
+import (
+	"fmt"
+
+	"github.com/homeport/disrupt-o-meter/pkg/cfw"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("Testing cloud foundry worker instance", func() {
+	Context("This is a simple local test of a few low level functions", func() {
+		It("should split the parameter string correctly", func() {
+			p := fmt.Sprintf("--amend --message")
+			expected := []string{"--amend", "--message"}
+
+			Expect(cfw.SplitParameterString(p)).To(BeEquivalentTo(expected))
+		})
+	})
+})
