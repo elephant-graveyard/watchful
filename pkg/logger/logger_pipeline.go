@@ -75,7 +75,7 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 
 	for _, m := range messages {
 		if len(s.config.LoggerGroup) < m.Logger.ID() {
-			fmt.Fprintln(s.writer, "Recieved a logger with the id ", m.Logger.ID(), "that could not be sorted")
+			fmt.Fprintln(s.writer, "Received a logger with the id ", m.Logger.ID(), "that could not be sorted")
 			continue
 		}
 

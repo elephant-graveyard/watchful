@@ -46,8 +46,8 @@ type TaskConfiguration struct {
 
 // MerkhetConfiguration is the configuration of one merkhet instance running
 type MerkhetConfiguration struct {
-	Name       string `yaml:"name"`
-	Threshhold string `yaml:"threshhold"`
+	Name      string `yaml:"name"`
+	Threshold string `yaml:"threshold"`
 }
 
 // LoggerConfiguration is the config for the logger system dom uses

@@ -28,7 +28,7 @@ import (
 
 // ParseFromFile parses the contents of the file located under the given string
 // into the config instance passed as the second parameter.
-// The function returns an error if one occured or nil if everything worked fine
+// The function returns an error if one occurred or nil if everything worked fine
 func ParseFromFile(file string, config interface{}) error {
 	fileContent, e := ioutil.ReadFile(file)
 	if e != nil {
@@ -40,7 +40,7 @@ func ParseFromFile(file string, config interface{}) error {
 
 // ParseFromString parses contents of the string provided as a parameter
 // into the config instance passed as the second parameter.
-// The function returns an error if one occured or nil if everything worked fine
+// The function returns an error if one occurred or nil if everything worked fine
 func ParseFromString(content string, config interface{}) error {
 	return yaml.Unmarshal([]byte(content), config)
 }

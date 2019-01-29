@@ -111,11 +111,11 @@ func NewPercentageConfiguration(name string, percentageTreshhold float64) *Perce
 }
 
 // NewFlatConfiguration creates a new configuration intaces that uses a flat threshold
-func NewFlatConfiguration(name string, flatThreshhold uint) *FlatConfiguration {
+func NewFlatConfiguration(name string, flatThreshold uint) *FlatConfiguration {
 	return &FlatConfiguration{
 		namedConfiguration: &namedConfiguration{
 			name: name,
 		},
-		flatThreshold: flatThreshhold,
+		flatThreshold: flatThreshold,
 	}
 }
