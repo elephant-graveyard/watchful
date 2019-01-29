@@ -78,7 +78,7 @@ func (s *SimpleCluster) StartListening() {
 			s.appendMessage(incomingMessage)
 		} else { // Time wise we don't need to flush
 			if s.nextCacheFlush == nil {
-				s.resetFlushTimer() //When starting the listener and the first message is recieved, start the timer as well
+				s.resetFlushTimer() //When starting the listener and the first message is received, start the timer as well
 			}
 
 			if s.isLoggerMessageCached(incomingMessage.Logger.ID()) { // Overwriting logger message, gotta flush
