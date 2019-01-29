@@ -18,36 +18,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cmd
+package main
 
 import (
-	"encoding/base64"
 	"fmt"
-
-	"github.com/homeport/disrupt-o-meter/internal/dom/assets"
-	"github.com/spf13/cobra"
-
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"net/http"
+	"time"
 )
 
-var version string
+func main() {
+	go spamLog(time.Second)
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Shows the version",
-	Long:  `Shows the version`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(version) == 0 {
-			version = "development"
-		}
-
-		bunt.Printf("*disrupt-o-meter* version DimGray{%s}\n", version)
-		b, _ := base64.StdEncoding.DecodeString(assets.SampleGoApp)
-		fmt.Print(string(b))
-	},
+	http.HandleFunc("/", renderIndexPage)
+	http.ListenAndServe(":80", nil)
 }
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
+func renderIndexPage(out http.ResponseWriter, in *http.Request) {
+	out.Header().Add("content-type", "application/json")
+	out.WriteHeader(200)
+
+	fmt.Fprint(out, `{"totally-random-number-without-any-meaning":949207500}`)
+}
+
+func spamLog(iteration time.Duration) {
+	ticker := time.NewTicker(iteration)
+	for {
+		select {
+		case t := <-ticker.C:
+			fmt.Println(t.Unix())
+		}
+	}
 }

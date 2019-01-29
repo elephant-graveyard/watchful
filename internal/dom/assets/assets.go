@@ -18,36 +18,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cmd
+package assets
 
 import (
 	"encoding/base64"
 	"fmt"
-
-	"github.com/homeport/disrupt-o-meter/internal/dom/assets"
-	"github.com/spf13/cobra"
-
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"os"
+	"path"
 )
 
-var version string
+var (
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Shows the version",
-	Long:  `Shows the version`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(version) == 0 {
-			version = "development"
-		}
+	// SampleGoApp is the content of the sample app written in go. This string will be encoded in base64
+	SampleGoApp string
+)
 
-		bunt.Printf("*disrupt-o-meter* version DimGray{%s}\n", version)
-		b, _ := base64.StdEncoding.DecodeString(assets.SampleGoApp)
-		fmt.Print(string(b))
-	},
-}
+// Extract64 extracts the string content passed as an asset into the provided file.
+// This will create the file and all parent directories if needed
+// The provided string has to be encoded in base64
+func Extract64(asset string, file string) error {
+	directoryName := path.Dir(file)
+	fileName := path.Base(file)
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
+	if e := os.MkdirAll(directoryName, 0700); e != nil { // 0700 -> leading 0 is stripped -> 700 means write, read and execute for the user creating this file.
+		return e
+	}
+
+	fileStream, e := os.Create(path.Join(directoryName, fileName))
+	if e != nil {
+		return e
+	}
+	defer fileStream.Close()
+
+	decodedBytes, e := base64.StdEncoding.DecodeString(asset)
+	if e != nil {
+		return e
+	}
+
+	fmt.Fprint(fileStream, string(decodedBytes))
+	return nil
 }

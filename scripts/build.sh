@@ -42,6 +42,15 @@ go mod verify
 # GOOS options: darwin dragonfly freebsd linux nacl netbsd openbsd plan9 solaris windows
 # GOARCH options: 386 amd64 amd64p32 arm arm64 ppc64 ppc64le mips mipsle mips64 mips64le s390x
 #
+echo -e "\\n\\033[1mPreparing Assets\\033[0m"
+
+LDFLAGS="-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/dom/cmd.version=${TOOL_VERSION}"
+while read LINE; do 
+  LDFLAGS="${LDFLAGS} -X $(cut -d '=' -f1 <<< $LINE)=$(cut -d '=' -f2 <<< $LINE)"
+done < mappings.kvm
+
+echo "${LDFLAGS}"
+
 echo -e "\\n\\033[1mCompiling ${TOOL_NAME} binaries:\\033[0m"
 while read -r OS ARCH; do
   TARGET_FILE="${BASEDIR}/binaries/${TOOL_NAME}-${OS}-${ARCH}"
@@ -52,7 +61,7 @@ while read -r OS ARCH; do
   echo -e "Running go build of version \\033[1;3m${TOOL_VERSION}\\033[0m for \\033[1;91m${OS}\\033[0m/\\033[1;31m${ARCH}\\033[0m: \\033[93m$(basename "${TARGET_FILE}")\\033[0m"
   CGO_ENABLED=0 GOOS="${OS}" GOARCH="${ARCH}" go build \
     -tags netgo \
-    -ldflags "-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/cmd.version=${TOOL_VERSION}" \
+    -ldflags "${LDFLAGS}" \
     -o "${TARGET_FILE}" \
     cmd/dom/main.go
 
