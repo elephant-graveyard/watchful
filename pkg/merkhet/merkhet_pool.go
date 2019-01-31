@@ -33,7 +33,7 @@ package merkhet
 type Pool interface {
 	StartWorker(merkhet Merkhet)
 	Size() uint
-	ForEach(consumer func(m Merkhet))
+	ForEach(consumer Consumer)
 	Shutdown()
 }
 
@@ -45,7 +45,7 @@ type SimplePool struct {
 // StartWorker pushes a new merkhet instance into the Pool
 func (s *SimplePool) StartWorker(m Merkhet) {
 	worker := NewMerkhetWorker(m)
-	go worker.StartWorker() //Start the worker intance in a different go routine
+	go worker.StartWorker() //Start the worker instance in a different go routine
 
 	s.workers = append(s.workers, worker)
 }
@@ -56,7 +56,7 @@ func (s *SimplePool) Size() uint {
 }
 
 // ForEach executes the provided function for each Merkhet instance currently managed by the pool
-func (s *SimplePool) ForEach(consumer func(m Merkhet)) {
+func (s *SimplePool) ForEach(consumer Consumer) {
 	for _, worker := range s.workers {
 		worker.ControllerChannel() <- consumer
 	}

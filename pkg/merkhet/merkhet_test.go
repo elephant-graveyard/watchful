@@ -24,6 +24,7 @@ import (
 	. "github.com/homeport/disrupt-o-meter/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"time"
 )
 
 var _ = Describe("Merkhet code test", func() {
@@ -58,12 +59,30 @@ var _ = Describe("Merkhet code test", func() {
 
 			pool.StartWorker(merkhet)
 
-			pool.ForEach(func(m Merkhet) { //This will synchronize the workflow
-				m.Install()
-			})
+			pool.ForEach(ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
+				merkhet.Install()
+			}))
 
 			pool.Shutdown()
 		})
+
+		It("should have executed correctly", func(done Done) {
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, &MerketCallback{
+				onExecute: func() {
+					time.Sleep(time.Second)
+				},
+			})
+
+			pool.StartWorker(merkhet)
+
+			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) {
+				merkhet.Execute()
+				relay <- ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
+					Succeed()
+					close(done)
+				})
+			}))
+		} , 5 * 1000)
 
 		It("should pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)
