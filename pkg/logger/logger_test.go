@@ -53,8 +53,8 @@ var _ = Describe("Logger code test", func() {
 		})
 
 		It("should forward messages correctly", func() {
-			logger.WriteString("test")
-			logger.WriteString("more-tests")
+			logger.WriteString("test", Info)
+			logger.WriteString("more-tests", Info)
 			Expect(channelProvider.Read().MessageAsString()).To(BeEquivalentTo("test"))
 			Expect(channelProvider.Read().MessageAsString()).To(BeEquivalentTo("more-tests"))
 		})
@@ -72,8 +72,8 @@ var _ = Describe("Logger code test", func() {
 
 			go cluster.StartListening()
 
-			logger.WriteString("first")
-			logger.WriteString("second")
+			logger.WriteString("first", Info)
+			logger.WriteString("second", Info)
 			close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 		})
 
@@ -87,8 +87,8 @@ var _ = Describe("Logger code test", func() {
 
 			go cluster.StartListening()
 
-			logger.WriteString("first")
-			loggerFactory.NewChanneledLogger("other-logger").WriteString("second")
+			logger.WriteString("first", Info)
+			loggerFactory.NewChanneledLogger("other-logger").WriteString("second", Info)
 			close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 		})
 
@@ -107,9 +107,9 @@ var _ = Describe("Logger code test", func() {
 
 			go cluster.StartListening()
 			go func() {
-				logger.WriteString("first")
+				logger.WriteString("first", Info)
 				time.Sleep(time.Second)
-				loggerFactory.NewChanneledLogger("other-logger").WriteString("second")
+				loggerFactory.NewChanneledLogger("other-logger").WriteString("second", Info)
 
 				close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 			}()
@@ -121,6 +121,19 @@ var _ = Describe("Logger code test", func() {
 			result := ChunkSlice(first+second+third+fourth, 4)
 
 			Expect(len(result)).To(BeEquivalentTo(5))
+		})
+
+		It("should log different levels", func() {
+			logger.ReportingTo(Info).Write([]byte("info"))
+			logger.ReportingTo(Error).Write([]byte("error"))
+
+			infoMessage := channelProvider.Read()
+			Expect(infoMessage.Level).To(BeEquivalentTo(Info))
+			Expect(infoMessage.Message).To(BeEquivalentTo("info"))
+
+			errorMessage := channelProvider.Read()
+			Expect(errorMessage.Level).To(BeEquivalentTo(Error))
+			Expect(errorMessage.Message).To(BeEquivalentTo("error"))
 		})
 
 		It("Should send messages to the terminal correctly", func(done Done) {
@@ -140,9 +153,9 @@ var _ = Describe("Logger code test", func() {
 			go c.StartListening()
 
 			go func() {
-				logger.WriteString("\033[31m1")
-				logger.WriteString("\033[31m2")
-				other.WriteString("\033[32mdone")
+				logger.WriteString("\033[31m1", Info)
+				logger.WriteString("\033[31m2", Info)
+				other.WriteString("\033[32mdone", Info)
 				close(channelProvider.Channel())
 			}()
 		}, 5*1000)

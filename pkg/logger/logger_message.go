@@ -24,6 +24,7 @@ package logger
 type ChannelMessage struct {
 	Logger  Logger
 	Message []byte
+	Level   LogLevel
 }
 
 // MessageAsString Returns the message as string
@@ -32,9 +33,10 @@ func (c ChannelMessage) MessageAsString() string {
 }
 
 // NewChannelMessage is a simple constructor for the ChannelMessage struct
-func NewChannelMessage(logger Logger, message []byte) ChannelMessage {
+func NewChannelMessage(logger Logger, message []byte, level LogLevel) ChannelMessage {
 	return ChannelMessage{
 		Logger:  logger,
 		Message: message,
+		Level:   level,
 	}
 }

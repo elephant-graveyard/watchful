@@ -20,6 +20,19 @@
 
 package logger
 
+import "io"
+
+// LogLevel describes the log level type a logger can write with
+type LogLevel byte
+
+const (
+	// Info represents the logging level info.
+	Info LogLevel = 0
+
+	// Error represents the logging level info
+	Error LogLevel = 1
+)
+
 // Logger defines an observable logger
 //
 // ChannelProvider returns the channel provider this Cluster uses
@@ -31,12 +44,15 @@ package logger
 // Write simply writes a byte array to the logger
 //
 // WriteString writes all bytes of the string to the logger
+//
+// ReportingTo creates a new writer that reports every written byte slice to the logger on the given log level
 type Logger interface {
 	ChannelProvider() ChannelProvider
 	Name() string
 	ID() int
-	Write(p []byte) (n int, err error)
-	WriteString(s string) error
+	Write(p []byte, level LogLevel) (n int, err error)
+	WriteString(s string, level LogLevel) error
+	ReportingTo(level LogLevel) io.Writer
 }
 
 // SimpleChanneledLogger is an implementation of the Logger interface that the loggers will use in order to store their logged values
@@ -63,13 +79,33 @@ func (l *SimpleChanneledLogger) ID() int {
 }
 
 // Write simply stores the written string inside the buffer
-func (l *SimpleChanneledLogger) Write(b []byte) (int, error) {
-	l.ChannelProvider().Push(NewChannelMessage(l, b))
+func (l *SimpleChanneledLogger) Write(b []byte, level LogLevel) (int, error) {
+	l.ChannelProvider().Push(NewChannelMessage(l, b, level))
 	return len(b), nil
 }
 
 // WriteString writes an entire string to the logger instance
-func (l *SimpleChanneledLogger) WriteString(s string) error {
-	_, err := l.Write([]byte(s))
+func (l *SimpleChanneledLogger) WriteString(s string, level LogLevel) error {
+	_, err := l.Write([]byte(s), level)
 	return err
+}
+
+// ReportingTo creates a new writer that reports every written byte slice to the logger on the given log level
+func (l *SimpleChanneledLogger) ReportingTo(level LogLevel) io.Writer {
+	return &loggerReporter{
+		level:  level,
+		logger: l,
+	}
+}
+
+// loggerReporter is a simple internal implementation of the writer interface.
+// it forwards every byte slice to its master logger
+type loggerReporter struct {
+	logger Logger
+	level  LogLevel
+}
+
+// Write simply forwards every call to the master
+func (l *loggerReporter) Write(p []byte) (n int, err error) {
+	return l.logger.Write(p, l.level)
 }
