@@ -45,11 +45,15 @@ go mod verify
 echo -e "\\n\\033[1mPreparing Assets\\033[0m"
 
 LDFLAGS="-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/dom/cmd.version=${TOOL_VERSION}"
-while read LINE; do 
-  LDFLAGS="${LDFLAGS} -X $(cut -d '=' -f1 <<< $LINE)=$(cut -d '=' -f2 <<< $LINE)"
-done < mappings.kvm
+while read -r LINE; do
+  ASSET_TARGET=$(cut -d '=' -f1 <<< "${LINE}")
+  FETCH_COMMAND_RAW=$(cut -d '=' -f2 <<< "${LINE}")
+  eval FETCH_COMMAND_OUTPUT=\$\("${FETCH_COMMAND_RAW}"\)
+  FETCH_COMMAND_OUTPUT="$(echo -e "${FETCH_COMMAND_OUTPUT}" | tr -d '[:space:]')"
 
-echo "${LDFLAGS}"
+  LDFLAGS="${LDFLAGS} -X $ASSET_TARGET=$FETCH_COMMAND_OUTPUT"
+  echo -e "Prepared mapping for \\033[1;31m${ASSET_TARGET}\e[0m to output of \\033[93m${FETCH_COMMAND_RAW}\e[0m"
+done < mappings.properties
 
 echo -e "\\n\\033[1mCompiling ${TOOL_NAME} binaries:\\033[0m"
 while read -r OS ARCH; do

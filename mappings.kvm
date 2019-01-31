@@ -1,1 +1,0 @@
-github.com/homeport/disrupt-o-meter/internal/dom/assets.SampleGoApp=$(cat cf-apps/go/main.go | base64)

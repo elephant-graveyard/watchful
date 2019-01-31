@@ -28,7 +28,6 @@ import (
 )
 
 var (
-
 	// SampleGoApp is the content of the sample app written in go. This string will be encoded in base64
 	SampleGoApp string
 )

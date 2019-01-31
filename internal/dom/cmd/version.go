@@ -21,10 +21,6 @@
 package cmd
 
 import (
-	"encoding/base64"
-	"fmt"
-
-	"github.com/homeport/disrupt-o-meter/internal/dom/assets"
 	"github.com/spf13/cobra"
 
 	"github.com/homeport/gonvenience/pkg/v1/bunt"
@@ -43,8 +39,6 @@ var versionCmd = &cobra.Command{
 		}
 
 		bunt.Printf("*disrupt-o-meter* version DimGray{%s}\n", version)
-		b, _ := base64.StdEncoding.DecodeString(assets.SampleGoApp)
-		fmt.Print(string(b))
 	},
 }
 
