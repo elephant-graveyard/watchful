@@ -124,8 +124,8 @@ var _ = Describe("Logger code test", func() {
 		})
 
 		It("should log different levels", func() {
-			logger.ReportingTo(Info).Write([]byte("info"))
-			logger.ReportingTo(Error).Write([]byte("error"))
+			logger.ReportingOn(Info).Write([]byte("info"))
+			logger.ReportingOn(Error).Write([]byte("error"))
 
 			infoMessage := channelProvider.Read()
 			Expect(infoMessage.Level).To(BeEquivalentTo(Info))
@@ -134,6 +134,15 @@ var _ = Describe("Logger code test", func() {
 			errorMessage := channelProvider.Read()
 			Expect(errorMessage.Level).To(BeEquivalentTo(Error))
 			Expect(errorMessage.Message).To(BeEquivalentTo("error"))
+		})
+
+		It("should notify the reviewers", func() {
+			logger.ReportingOn(Info).
+				ReviewWith(func(p []byte) error {
+					Expect(string(p)).To(BeEquivalentTo("info"))
+					return nil
+				}).
+				Write([]byte("info"))
 		})
 
 		It("Should send messages to the terminal correctly", func(done Done) {
