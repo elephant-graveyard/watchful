@@ -29,7 +29,7 @@ import (
 // so make sure to spin up a new routine if you don't want to block your main process
 //
 // Authenticate authenticates the worker against the cloud foundry instance provided in the certificate
-// It returns any error that may occure, or nil if the opperation was successful
+// It returns any error that may occur, or nil if the operation was successful
 //
 // Logger returns the logger instance the worker task is using
 //
@@ -49,7 +49,7 @@ type SimpleCloudFoundryWorker struct {
 }
 
 // Authenticate authenticates the worker against the cloud foundry instance provided in the certificate
-// It returns any error that may occure, or nil if the opperation was successful
+// It returns any error that may occur, or nil if the operation was successful
 func (s *SimpleCloudFoundryWorker) Authenticate(cert CloudFoundryCertificate) error {
 	return s.cli.Auth(cert.APIEndPoint, cert.Username, cert.Password).Sync()
 }

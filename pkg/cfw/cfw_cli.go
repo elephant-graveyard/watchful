@@ -23,7 +23,6 @@ package cfw
 import (
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 )
 
@@ -45,7 +44,6 @@ type CloudFoundryCLI interface {
 	Push(path string, name string, instances int) CommandPromise
 	Delete(name string) CommandPromise
 	Scale(name string, instances int) CommandPromise
-	StreamLogs(name string)
 }
 
 // BashCloudFoundryCLI is a cli runner that relies on executing bash commands.
@@ -67,31 +65,17 @@ func (b *BashCloudFoundryCLI) Target(organization string, space string) CommandP
 // Push pushes a new instance to the cloud foundry instance. The instance has to be under the provided path
 // It will be pushed with the provided name and n instances will be created
 func (b *BashCloudFoundryCLI) Push(path string, name string, instances int) CommandPromise {
-	return &SimpleCommandPromise{
-		command: exec.Command("cf",
-			"push", name,
-			"-i", strconv.Itoa(instances),
-			"-p", path),
-	}
+	return createCFCommandPromise(fmt.Sprintf("push %s -i %d -p %s", name, instances, path))
 }
 
 // Delete will delete the provided app from the selected space
 func (b *BashCloudFoundryCLI) Delete(name string) CommandPromise {
-	return &SimpleCommandPromise{
-		command: exec.Command("cf",
-			"delete", name,
-			"-r",
-			"-f"),
-	}
+	return createCFCommandPromise(fmt.Sprintf("delete %s -r -f", name))
 }
 
 // Scale will scale the app instance to the provided amount
 func (b *BashCloudFoundryCLI) Scale(name string, instances int) CommandPromise {
-	return &SimpleCommandPromise{
-		command: exec.Command("cf",
-			"scale", name,
-			"-i", strconv.Itoa(instances)),
-	}
+	return createCFCommandPromise(fmt.Sprintf("scale %s -i %d", name, instances))
 }
 
 // SplitParameterString splits the string into a slice of parameters
@@ -101,7 +85,5 @@ func SplitParameterString(parameter string) []string {
 
 // createCFCommandPromise simply creates a new command promise executing cf plus the parameter list
 func createCFCommandPromise(parameter string) CommandPromise {
-	return &SimpleCommandPromise{
-		command: exec.Command("cf", SplitParameterString(parameter)...),
-	}
+	return NewSimpleCommandPromise(exec.Command("cf", SplitParameterString(parameter)...))
 }

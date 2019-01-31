@@ -45,55 +45,23 @@ type CommandPromise interface {
 	Async(subscriber func(e error)) *sync.WaitGroup
 }
 
-// SimpleCommandPromise is a simple struct wrapping an exec.Command instance
+// NewSimpleSlicedCommandPromise returns a simple command promise implementation containing multiple commands
+func NewSimpleSlicedCommandPromise(commands []*exec.Cmd) *SimpleCommandPromise {
+	return &SimpleCommandPromise{commands: commands}
+}
+
+// NewSimpleCommandPromise returns a simple command promise implementation containing one command
+func NewSimpleCommandPromise(command *exec.Cmd) *SimpleCommandPromise {
+	return &SimpleCommandPromise{commands: []*exec.Cmd{command}}
+}
+
+// SimpleCommandPromise is an implementation of the CommandPromise interface that is able to run multiple commands
 type SimpleCommandPromise struct {
-	command *exec.Cmd
-}
-
-// SubscribeOnOut will subscribe the writer instance to the command promise
-func (s *SimpleCommandPromise) SubscribeOnOut(writer io.Writer) CommandPromise {
-	s.command.Stdout = writer
-	return s
-}
-
-// SubscribeOnErr will subscribe the writer instance to the command promise
-func (s *SimpleCommandPromise) SubscribeOnErr(writer io.Writer) CommandPromise {
-	s.command.Stderr = writer
-	return s
-}
-
-// Sync executes the command promise and returns the result
-// The command will be executed on the same go routine
-func (s *SimpleCommandPromise) Sync() error {
-	return s.command.Run()
-}
-
-// Async executes the command promise and returns the result to the passed subscriber
-// The command will be executed on a new go routine
-// It returns a WaitGroup instance that will finish once the task did
-func (s *SimpleCommandPromise) Async(subscriber func(e error)) *sync.WaitGroup {
-	w := &sync.WaitGroup{}
-	w.Add(1)
-
-	go func(w *sync.WaitGroup) {
-		result := s.Sync()
-
-		if subscriber != nil {
-			subscriber(result)
-		}
-		w.Done()
-	}(w)
-
-	return w
-}
-
-// ComplexCommandPromise is an implementation of the CommandPromise interface that is able to run multiple commands
-type ComplexCommandPromise struct {
 	commands []*exec.Cmd
 }
 
 // SubscribeOnOut will subscribe the writer instance to the command promise
-func (c *ComplexCommandPromise) SubscribeOnOut(writer io.Writer) CommandPromise {
+func (c *SimpleCommandPromise) SubscribeOnOut(writer io.Writer) CommandPromise {
 	for _, c := range c.commands {
 		c.Stdout = writer
 	}
@@ -101,7 +69,7 @@ func (c *ComplexCommandPromise) SubscribeOnOut(writer io.Writer) CommandPromise 
 }
 
 // SubscribeOnErr will subscribe the writer instance to the command promise
-func (c *ComplexCommandPromise) SubscribeOnErr(writer io.Writer) CommandPromise {
+func (c *SimpleCommandPromise) SubscribeOnErr(writer io.Writer) CommandPromise {
 	for _, c := range c.commands {
 		c.Stderr = writer
 	}
@@ -110,7 +78,7 @@ func (c *ComplexCommandPromise) SubscribeOnErr(writer io.Writer) CommandPromise 
 
 // Sync executes the command promise and returns the result
 // The command will be executed on the same go routine
-func (c *ComplexCommandPromise) Sync() error {
+func (c *SimpleCommandPromise) Sync() error {
 	for _, c := range c.commands {
 		e := c.Run()
 		if e != nil {
@@ -123,7 +91,7 @@ func (c *ComplexCommandPromise) Sync() error {
 // Async executes the command promise and returns the result to the passed subscriber
 // The command will be executed on a new go routine
 // It returns a WaitGroup instance that will finish once the task did
-func (c *ComplexCommandPromise) Async(subscriber func(e error)) *sync.WaitGroup {
+func (c *SimpleCommandPromise) Async(subscriber func(e error)) *sync.WaitGroup {
 	w := &sync.WaitGroup{}
 	w.Add(1)
 
