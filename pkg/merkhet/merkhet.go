@@ -37,13 +37,20 @@ import (
 // Configuration returns the configuration instances the Merkhet is depending on
 //
 // Configuration returns the configuration instances the Merkhet is depending on
+//
+// RecordSuccessfulRun records one successful run
+//
+// RecordFailedRun records one failed run
 type Merkhet interface {
-	Install()
-	PostConnect()
-	Execute()
+	Install() error
+	PostConnect() error
+	Execute() error
 	BuildResult() Result
 	Configuration() Configuration
 	Logger() logger.Logger
+
+	RecordSuccessfulRun()
+	RecordFailedRun()
 }
 
 // Configuration contains the passed configuration values for a Merkhet instance
@@ -54,7 +61,7 @@ type Merkhet interface {
 // The behaviour of this method is heavily reliant on the implementation
 type Configuration interface {
 	Name() string
-	ValidRun(totalRuns uint, failedRuns uint) bool
+	ValidRun(totalRuns int, failedRuns int) bool
 }
 
 // namedConfiguration is a simple structure containing the name of a MerhetConfiguration
@@ -79,7 +86,7 @@ func (p *PercentageConfiguration) Name() string {
 }
 
 // ValidRun returns if the failed runs compared to the total runs are below the provided percentage threshold
-func (p *PercentageConfiguration) ValidRun(totalRuns uint, failedRuns uint) bool {
+func (p *PercentageConfiguration) ValidRun(totalRuns int, failedRuns int) bool {
 	return (float64(failedRuns) / float64(totalRuns)) <= p.percentageThreshold
 }
 
@@ -87,7 +94,7 @@ func (p *PercentageConfiguration) ValidRun(totalRuns uint, failedRuns uint) bool
 // to calculate viability
 type FlatConfiguration struct {
 	namedConfiguration *namedConfiguration
-	flatThreshold      uint
+	flatThreshold      int
 }
 
 // Name returns the name stored in the configuration delegate
@@ -96,7 +103,7 @@ func (f *FlatConfiguration) Name() string {
 }
 
 // ValidRun returns if the failed runs compared to the total runs are below the provided percentage threshold
-func (f *FlatConfiguration) ValidRun(totalRuns uint, failedRuns uint) bool {
+func (f *FlatConfiguration) ValidRun(totalRuns int, failedRuns int) bool {
 	return failedRuns <= f.flatThreshold
 }
 
@@ -111,7 +118,7 @@ func NewPercentageConfiguration(name string, percentageThreshold float64) *Perce
 }
 
 // NewFlatConfiguration creates a new configuration instance that uses a flat threshold
-func NewFlatConfiguration(name string, flatThreshold uint) *FlatConfiguration {
+func NewFlatConfiguration(name string, flatThreshold int) *FlatConfiguration {
 	return &FlatConfiguration{
 		namedConfiguration: &namedConfiguration{
 			name: name,
