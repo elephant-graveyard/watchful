@@ -57,11 +57,7 @@ func (s *SimpleWorkerTask) Merkhet() Merkhet {
 // This has to be called in a different go routine, or it will block the calling routine
 func (s *SimpleWorkerTask) StartWorker() {
 	for request := range s.ControllerChannel() {
-		if request.Sync() {
-			request.Consume(s.Merkhet(), s.ControllerChannel())
-		} else {
-			go request.Consume(s.Merkhet(), s.ControllerChannel())
-		}
+		request.Consume(s.Merkhet(), s.ControllerChannel())
 	}
 }
 

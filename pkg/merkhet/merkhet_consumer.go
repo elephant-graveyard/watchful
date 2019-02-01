@@ -23,34 +23,41 @@ package merkhet
 // ConsumerMethod describes the type of the methods allowed to consumer a merkhet
 type ConsumerMethod func(merkhet Merkhet, relay ControllerChannel)
 
-// Consumer is a simple consumer method that can be called against a merkhet
-type Consumer struct {
-	consumerMethod ConsumerMethod
-	sync           bool
+// Consumer defines an object that can consume a merkhet instnace
+type Consumer interface {
+	Consume(merkhet Merkhet, relay ControllerChannel)
 }
 
-// Consume consumes the passed merkhet instance
-func (c Consumer) Consume(m Merkhet, relay ControllerChannel) {
-	c.consumerMethod(m, relay)
+// SyncedConsumer is a consumer that executes the consuming method in sync with the current go routine
+type SyncedConsumer struct {
+	consumer ConsumerMethod
 }
 
-// Sync returns if the consumer can run synced with its worker
-func (c Consumer) Sync() bool {
-	return c.sync
+// Consume calls the passed consumer method in the current go routine
+func (s *SyncedConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
+	s.consumer(merkhet, relay)
 }
 
 // ConsumeSync creates a synced Consumer
 func ConsumeSync(m ConsumerMethod) Consumer {
-	return Consumer{
-		consumerMethod: m,
-		sync:           true,
+	return &SyncedConsumer{
+		consumer: m,
 	}
 }
 
-// ConsumeAsync creates a synced Consumer
+// AsyncedConsumer is a consumer that executes the consuming method on a new go routine
+type AsyncedConsumer struct {
+	consumer ConsumerMethod
+}
+
+// Consume calls the passed consumer method in a new go routine
+func (a *AsyncedConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
+	go a.consumer(merkhet, relay)
+}
+
+// ConsumeAsync creates a asynced Consumer
 func ConsumeAsync(m ConsumerMethod) Consumer {
-	return Consumer{
-		consumerMethod: m,
-		sync:           false,
+	return &AsyncedConsumer{
+		consumer: m,
 	}
 }
