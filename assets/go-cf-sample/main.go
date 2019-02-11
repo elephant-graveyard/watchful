@@ -30,14 +30,14 @@ func main() {
 	go spamLog(time.Second)
 
 	http.HandleFunc("/", renderIndexPage)
-	http.ListenAndServe(":80", nil)
+	_ = http.ListenAndServe(":80", nil)
 }
 
 func renderIndexPage(out http.ResponseWriter, in *http.Request) {
 	out.Header().Add("content-type", "application/json")
 	out.WriteHeader(200)
 
-	fmt.Fprint(out, `{"totally-random-number-without-any-meaning":949207500}`)
+	_, _ = fmt.Fprint(out, `{"totally-random-number-without-any-meaning":949207500}`)
 }
 
 func spamLog(iteration time.Duration) {

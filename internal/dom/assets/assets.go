@@ -20,40 +20,19 @@
 
 package assets
 
-import (
-	"encoding/base64"
-	"fmt"
-	"os"
-	"path"
-)
+import "github.com/homeport/pina-golada/pkg/files"
 
-var (
-	// SampleGoApp is the content of the sample app written in go. This string will be encoded in base64
-	SampleGoApp string
-)
+//Provider is the provider instance to access pina-goladas asset framework
+var Provider ProviderInterface
 
-// Extract64 extracts the string content passed as an asset into the provided file.
-// This will create the file and all parent directories if needed
-// The provided string has to be encoded in base64
-func Extract64(asset string, file string) error {
-	directoryName := path.Dir(file)
-	fileName := path.Base(file)
-
-	if e := os.MkdirAll(directoryName, 0700); e != nil { // 0700 -> leading 0 is stripped -> 700 means write, read and execute for the user creating this file.
-		return e
-	}
-
-	fileStream, e := os.Create(path.Join(directoryName, fileName))
-	if e != nil {
-		return e
-	}
-	defer fileStream.Close()
-
-	decodedBytes, e := base64.StdEncoding.DecodeString(asset)
-	if e != nil {
-		return e
-	}
-
-	fmt.Fprint(fileStream, string(decodedBytes))
-	return nil
+/*
+ProviderInterface is the interface that provides the asset file
+@pgl(package=assets&injector=Provider)
+ */
+type ProviderInterface interface {
+	/*
+	GetGoSampleApp returns the directory containing the go sample app
+	@pgl(asset=/assets/go-cf-sample/&compressor=tar)
+	 */
+	GetGoSampleApp() (directory files.Directory , e error)
 }

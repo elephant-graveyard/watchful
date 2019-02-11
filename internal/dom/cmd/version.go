@@ -21,9 +21,8 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"github.com/spf13/cobra"
 )
 
 var version string
@@ -38,7 +37,7 @@ var versionCmd = &cobra.Command{
 			version = "development"
 		}
 
-		bunt.Printf("*disrupt-o-meter* version DimGray{%s}\n", version)
+		_, _ = bunt.Printf("*disrupt-o-meter* version DimGray{%s}\n", version)
 	},
 }
 
