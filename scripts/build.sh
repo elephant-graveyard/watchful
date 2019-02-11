@@ -24,7 +24,7 @@ set -euo pipefail
 
 BASEDIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-for TOOL in git cut; do
+for TOOL in git cut pina-golada; do
   if ! hash "${TOOL}" 2>/dev/null; then
     echo -e "Required tool \\033[1m${TOOL}\\033[0m is not installed."
     echo

@@ -41,14 +41,14 @@ import (
 type PipelineObserver func(messages string)
 
 var (
-	// PipelineSeperator is the char that is used to separate the differet pipelines
-	PipelineSeperator = ` | `
+	// PipelineSeparator is the char that is used to separate the different pipelines
+	PipelineSeparator = ` | `
 
 	// TimeFormat is the format we will adapt the time to
 	TimeFormat = "[2/1/2006 15:04:05]"
 )
 
-// Pipeline deinfes an interface that is capable of formatting a LoggerCoupler output
+// Pipeline defines an interface that is capable of formatting a LoggerCoupler output
 //
 // Write formats all passed byte arrays into one final string
 //
@@ -102,7 +102,7 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 
 			groupArray := finalOutput[group]
 			if group > 0 { // Print new line if we are not first or last message
-				output += PipelineSeperator
+				output += PipelineSeparator
 			}
 
 			if line < len(groupArray) {
@@ -133,7 +133,7 @@ func (s *SplitPipeline) Observer(o PipelineObserver) {
 	s.observers = append(s.observers, o)
 }
 
-// ChunkSlice slics a message chunk into smaller chunks
+// ChunkSlice slice a message chunk into smaller chunks
 func ChunkSlice(input string, chunkSize int) []string {
 	chunkBounds := make([]int, 1)
 	result := make([]string, 0)
@@ -211,7 +211,7 @@ func NewSplitPipelineConfig(showLoggerName bool, location time.Location, tWidth 
 
 	tWidth -= len(TimeFormat)
 	var groupCount = maxLoggerGroup + 1
-	charactersPerPipe := tWidth/groupCount - (len(PipelineSeperator) * (groupCount - 1))
+	charactersPerPipe := tWidth/groupCount - (len(PipelineSeparator) * (groupCount - 1))
 
 	if charactersPerPipe < 1 {
 		panic(errors.New("The provided console length is too small -> " + strconv.Itoa(charactersPerPipe)))

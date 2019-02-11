@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-// Cluster defines a service that is capable of clustering loggers into on syncronized output
+// Cluster defines a service that is capable of clustering loggers into on synchronized output
 //
 // LoggerPipeline() returns the cluster instance the Cluster send the coupled ChannelMessages to
 //
@@ -36,7 +36,7 @@ import (
 //
 // Flush() Flushes the cluster content to the pipeline
 //
-// WaitGroup() returns the waitgroup instance the cluster uses to identify if it is done running
+// WaitGroup() returns the wait-group instance the cluster uses to identify if it is done running
 type Cluster interface {
 	LoggerPipeline() Pipeline
 	ChannelProvider() ChannelProvider
@@ -60,7 +60,7 @@ func (s *SimpleCluster) LoggerPipeline() Pipeline {
 	return s.pipe
 }
 
-// ChannelProvider returns the channel provider the Cluster wi
+// ChannelProvider returns the channel provider the Cluster uses
 func (s *SimpleCluster) ChannelProvider() ChannelProvider {
 	return s.channel
 }
@@ -78,7 +78,7 @@ func (s *SimpleCluster) StartListening() {
 			s.appendMessage(incomingMessage)
 		} else { // Time wise we don't need to flush
 			if s.nextCacheFlush == nil {
-				s.resetFlushTimer() //When starting the listener and the first message is received, start the timer as well
+				s.resetFlushTimer() // When starting the listener and the first message is received, start the timer as well
 			}
 
 			if s.isLoggerMessageCached(incomingMessage.Logger.ID()) { // Overwriting logger message, gotta flush
@@ -104,15 +104,15 @@ func (s *SimpleCluster) Flush() {
 	s.resetMessageCache()
 }
 
-// WaitGroup returns the waitgroup used to signal if the listening is running at the momement
+// WaitGroup returns the wait-group used to signal if the listening is running at the moment
 func (s *SimpleCluster) WaitGroup() *sync.WaitGroup {
 	return s.waitGroup
 }
 
 // resetMessageCache simply clears the message cache
 func (s *SimpleCluster) resetMessageCache() {
-	//signal the garbage collector to remove eventually cached array structure under it: https://stackoverflow.com/questions/16971741/how-do-you-clear-a-slice-in-go
-	//nil slices will still appedabe so we don't need to reallocate a slice instance using make
+	// signal the garbage collector to remove eventually cached array structure under it: https://stackoverflow.com/questions/16971741/how-do-you-clear-a-slice-in-go
+	// nil slices will still appendable so we don't need to reallocate a slice instance using make
 	s.messageCache = nil
 }
 
@@ -142,7 +142,7 @@ func (s *SimpleCluster) appendMessage(c ChannelMessage) {
 	s.messageCache = append(s.messageCache, c)
 }
 
-// NewLoggerCluster creates a new instance of the LoggerCluster inferface
+// NewLoggerCluster creates a new instance of the LoggerCluster interface
 func NewLoggerCluster(pipeline Pipeline, channelProvider ChannelProvider, clusterDuration time.Duration) *SimpleCluster {
 	return &SimpleCluster{
 		channel:         channelProvider,

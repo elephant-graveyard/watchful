@@ -30,7 +30,7 @@ import (
 //
 // PostConnect is called after DOM successfully authenticated against the cloud foundry instance
 //
-// PostConnect is called after DOM successfully authenticated against the cloud founery instance
+// PostConnect is called after DOM successfully authenticated against the cloud foundery instance
 //
 // BuildResult creates a new Result instance containing the
 //
@@ -64,7 +64,7 @@ type Configuration interface {
 	ValidRun(totalRuns int, failedRuns int) bool
 }
 
-// namedConfiguration is a simple structure containing the name of a MerhetConfiguration
+// namedConfiguration is a simple structure containing the name of a MerkhetConfiguration
 type namedConfiguration struct {
 	name string
 }
@@ -86,7 +86,7 @@ func (p *PercentageConfiguration) Name() string {
 }
 
 // ValidRun returns if the failed runs compared to the total runs are below the provided percentage threshold
-func (p *PercentageConfiguration) ValidRun(totalRuns int, failedRuns int) bool {
+func (p *PercentageConfiguration) ValidRun(totalRuns uint, failedRuns uint) bool {
 	return (float64(failedRuns) / float64(totalRuns)) <= p.percentageThreshold
 }
 

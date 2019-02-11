@@ -26,9 +26,8 @@ import "regexp"
 const ColorEscapeSeq = "\x1b"
 
 var (
-
 	// BeginsWithColorPattern is the regex matching.
-	// We are compiling it once, as regex is not the fastes
+	// We are compiling it once, as regex is not the fastest
 	BeginsWithColorPattern = regexp.MustCompile(ColorEscapeSeq + `\[\d+(;\d+)*m`)
 )
 

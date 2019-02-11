@@ -50,7 +50,7 @@ func (p *PipelineMock) Observer(o PipelineObserver) {
 	os.Exit(1)
 }
 
-// Location returns the location used to determin the date that is passed into the logs
+// Location returns the location used to determine the date that is passed into the logs
 func (p *PipelineMock) Location() *time.Location {
 	return time.Local
 }

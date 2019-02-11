@@ -22,7 +22,7 @@ package assets
 
 import "github.com/homeport/pina-golada/pkg/files"
 
-//Provider is the provider instance to access pina-goladas asset framework
+// Provider is the provider instance to access pina-goladas asset framework
 var Provider ProviderInterface
 
 /*
@@ -34,5 +34,5 @@ type ProviderInterface interface {
 	GetGoSampleApp returns the directory containing the go sample app
 	@pgl(asset=/assets/go-cf-sample/&compressor=tar)
 	 */
-	GetGoSampleApp() (directory files.Directory , e error)
+	GetGoSampleApp() (directory files.Directory, e error)
 }

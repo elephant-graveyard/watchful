@@ -27,7 +27,7 @@ package logger
 // Read() ChannelMessage reads a channel message from the channel wrapped in this provider instance
 // This will block the executing go routine until a message is present in the channel
 //
-// Channel() Returns the actual wrapped channel instace that is being provided
+// Channel() Returns the actual wrapped channel instance that is being provided
 type ChannelProvider interface {
 	Push(message ChannelMessage)
 	Read() ChannelMessage
@@ -50,7 +50,7 @@ func (c *SimpleChannelProvider) Read() ChannelMessage {
 	return <-c.Channel()
 }
 
-// Channel returns the channel this provider wrapps
+// Channel returns the channel this provider wraps
 func (c *SimpleChannelProvider) Channel() chan ChannelMessage {
 	return c.channel
 }
