@@ -25,10 +25,10 @@ type LogLevel byte
 
 const (
 	// Info represents the logging level info.
-	Info LogLevel = 0
+	Info LogLevel = iota
 
 	// Error represents the logging level info
-	Error LogLevel = 1
+	Error
 )
 
 // Logger defines an observable logger
@@ -49,7 +49,7 @@ type Logger interface {
 	Name() string
 	ID() int
 	Write(p []byte, level LogLevel) (n int, err error)
-	WriteString(s string, level LogLevel) error
+	WriteString(level LogLevel, s string) error
 	ReportingOn(level LogLevel) ReportingWriter
 }
 
@@ -83,7 +83,7 @@ func (l *SimpleChanneledLogger) Write(b []byte, level LogLevel) (int, error) {
 }
 
 // WriteString writes an entire string to the logger instance
-func (l *SimpleChanneledLogger) WriteString(s string, level LogLevel) error {
+func (l *SimpleChanneledLogger) WriteString(level LogLevel, s string) error {
 	_, err := l.Write([]byte(s), level)
 	return err
 }

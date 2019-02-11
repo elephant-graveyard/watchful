@@ -53,8 +53,8 @@ var _ = Describe("Logger code test", func() {
 		})
 
 		It("should forward messages correctly", func() {
-			logger.WriteString("test", Info)
-			logger.WriteString("more-tests", Info)
+			logger.WriteString(Info, "test")
+			logger.WriteString(Info, "more-tests")
 			Expect(channelProvider.Read().MessageAsString()).To(BeEquivalentTo("test"))
 			Expect(channelProvider.Read().MessageAsString()).To(BeEquivalentTo("more-tests"))
 		})
@@ -72,8 +72,8 @@ var _ = Describe("Logger code test", func() {
 
 			go cluster.StartListening()
 
-			logger.WriteString("first", Info)
-			logger.WriteString("second", Info)
+			logger.WriteString(Info, "first")
+			logger.WriteString(Info, "second")
 			close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 		})
 
@@ -87,8 +87,8 @@ var _ = Describe("Logger code test", func() {
 
 			go cluster.StartListening()
 
-			logger.WriteString("first", Info)
-			loggerFactory.NewChanneledLogger("other-logger").WriteString("second", Info)
+			logger.WriteString(Info, "first")
+			loggerFactory.NewChanneledLogger("other-logger").WriteString(Info, "second")
 			close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 		})
 
@@ -107,9 +107,9 @@ var _ = Describe("Logger code test", func() {
 
 			go cluster.StartListening()
 			go func() {
-				logger.WriteString("first", Info)
+				logger.WriteString(Info, "first")
 				time.Sleep(time.Second)
-				loggerFactory.NewChanneledLogger("other-logger").WriteString("second", Info)
+				loggerFactory.NewChanneledLogger("other-logger").WriteString(Info, "second")
 
 				close(channelProvider.Channel()) // Ends all communication as we wanna unit test on main thread
 			}()
@@ -162,9 +162,9 @@ var _ = Describe("Logger code test", func() {
 			go c.StartListening()
 
 			go func() {
-				logger.WriteString("\033[31m1", Info)
-				logger.WriteString("\033[31m2", Info)
-				other.WriteString("\033[32mdone", Info)
+				logger.WriteString(Info, "\033[31m1")
+				logger.WriteString(Info, "\033[31m2")
+				other.WriteString(Info, "\033[32mdone")
 				close(channelProvider.Channel())
 			}()
 		}, 5*1000)

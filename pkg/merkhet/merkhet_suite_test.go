@@ -111,7 +111,7 @@ func (l *LoggerMock) Write(p []byte, level logger.LogLevel) (n int, err error) {
 	return l.Buffer.Write(p)
 }
 
-func (l *LoggerMock) WriteString(s string, level logger.LogLevel) error {
+func (l *LoggerMock) WriteString(level logger.LogLevel, s string) error {
 	_, err := l.Write([]byte(s), level)
 	return err
 }
