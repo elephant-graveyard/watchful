@@ -95,6 +95,10 @@ type LoggerMock struct {
 	Buffer *bytes.Buffer
 }
 
+func (l *LoggerMock) ReportingOn(level logger.LogLevel) logger.ReportingWriter {
+	return logger.NewSimpleLoggerReporter(l, level)
+}
+
 func (l *LoggerMock) Name() string {
 	return "LoggerMock"
 }
@@ -103,12 +107,12 @@ func (l *LoggerMock) ID() int {
 	return 0
 }
 
-func (l *LoggerMock) Write(p []byte) (n int, err error) {
+func (l *LoggerMock) Write(p []byte, level logger.LogLevel) (n int, err error) {
 	return l.Buffer.Write(p)
 }
 
-func (l *LoggerMock) WriteString(s string) error {
-	_, err := l.Write([]byte(s))
+func (l *LoggerMock) WriteString(level logger.LogLevel, s string) error {
+	_, err := l.Write([]byte(s), level)
 	return err
 }
 

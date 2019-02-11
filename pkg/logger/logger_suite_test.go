@@ -30,7 +30,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestMerkhet(t *testing.T) {
+func TestLogger(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "disrupt-o-meter pkg logger suite")
 }

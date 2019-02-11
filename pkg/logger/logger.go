@@ -20,6 +20,17 @@
 
 package logger
 
+// LogLevel describes the log level type a logger can write with
+type LogLevel byte
+
+const (
+	// Info represents the logging level info.
+	Info LogLevel = iota
+
+	// Error represents the logging level info
+	Error
+)
+
 // Logger defines an observable logger
 //
 // ChannelProvider returns the channel provider this Cluster uses
@@ -31,12 +42,15 @@ package logger
 // Write simply writes a byte array to the logger
 //
 // WriteString writes all bytes of the string to the logger
+//
+// ReportingOn creates a new writer that reports every written byte slice to the logger on the given log level
 type Logger interface {
 	ChannelProvider() ChannelProvider
 	Name() string
 	ID() int
-	Write(p []byte) (n int, err error)
-	WriteString(s string) error
+	Write(p []byte, level LogLevel) (n int, err error)
+	WriteString(level LogLevel, s string) error
+	ReportingOn(level LogLevel) ReportingWriter
 }
 
 // SimpleChanneledLogger is an implementation of the Logger interface that the loggers will use in order to store their logged values
@@ -63,13 +77,18 @@ func (l *SimpleChanneledLogger) ID() int {
 }
 
 // Write simply stores the written string inside the buffer
-func (l *SimpleChanneledLogger) Write(b []byte) (int, error) {
-	l.ChannelProvider().Push(NewChannelMessage(l, b))
+func (l *SimpleChanneledLogger) Write(b []byte, level LogLevel) (int, error) {
+	l.ChannelProvider().Push(NewChannelMessage(l, b, level))
 	return len(b), nil
 }
 
 // WriteString writes an entire string to the logger instance
-func (l *SimpleChanneledLogger) WriteString(s string) error {
-	_, err := l.Write([]byte(s))
+func (l *SimpleChanneledLogger) WriteString(level LogLevel, s string) error {
+	_, err := l.Write([]byte(s), level)
 	return err
+}
+
+// ReportingOn creates a new writer that reports every written byte slice to the logger on the given log level
+func (l *SimpleChanneledLogger) ReportingOn(level LogLevel) ReportingWriter {
+	return NewSimpleLoggerReporter(l , level)
 }
