@@ -36,40 +36,51 @@ func TestMerkhet(t *testing.T) {
 }
 
 type MerketCallback struct {
-	onInstall     func()
-	onPostConnect func()
-	onExecute     func()
+	onInstall     func() error
+	onPostConnect func() error
+	onExecute     func() error
 }
 
 type MerkhetMock struct {
-	Config      Configuration
-	LokggerMock logger.Logger
-	FailedRuns  uint
-	TotalRuns   uint
-	WillExecute bool
-	Callback    *MerketCallback
+	Config         Configuration
+	LokggerMock    logger.Logger
+	FailedRuns     int
+	SuccessfulRuns int
+	WillExecute    bool
+	Callback       *MerketCallback
 }
 
-func (s *MerkhetMock) Install() {
+func (s *MerkhetMock) RecordSuccessfulRun() {
+	s.SuccessfulRuns = s.SuccessfulRuns + 1
+}
+
+func (s *MerkhetMock) RecordFailedRun() {
+	s.FailedRuns = s.FailedRuns + 1
+}
+
+func (s *MerkhetMock) Install() error {
 	if s.Callback.onInstall != nil {
-		s.Callback.onInstall()
+		return s.Callback.onInstall()
 	}
+	return nil
 }
 
-func (s *MerkhetMock) PostConnect() {
+func (s *MerkhetMock) PostConnect() error {
 	if s.Callback.onPostConnect != nil {
-		s.Callback.onPostConnect()
+		return s.Callback.onPostConnect()
 	}
+	return nil
 }
 
-func (s *MerkhetMock) Execute() {
+func (s *MerkhetMock) Execute() error {
 	if s.Callback.onExecute != nil {
-		s.Callback.onExecute()
+		return s.Callback.onExecute()
 	}
+	return nil
 }
 
 func (s *MerkhetMock) BuildResult() Result {
-	return NewMerkhetResult(s.TotalRuns, s.FailedRuns, s.Configuration().ValidRun(s.TotalRuns, s.FailedRuns))
+	return NewMerkhetResult(s.SuccessfulRuns, s.FailedRuns, s.Configuration().ValidRun(s.SuccessfulRuns, s.FailedRuns))
 }
 
 func (s *MerkhetMock) Configuration() Configuration {
@@ -80,9 +91,9 @@ func (s *MerkhetMock) Logger() logger.Logger {
 	return s.LokggerMock
 }
 
-func NewMerkhetMock(config Configuration, totalRuns uint, fails uint, canExecute bool, callback *MerketCallback) *MerkhetMock {
+func NewMerkhetMock(config Configuration, totalRuns int, fails int, canExecute bool, callback *MerketCallback) *MerkhetMock {
 	return &MerkhetMock{
-		TotalRuns:   totalRuns,
+		SuccessfulRuns:   totalRuns,
 		FailedRuns:  fails,
 		WillExecute: canExecute,
 		Config:      config,

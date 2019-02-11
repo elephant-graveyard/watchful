@@ -21,6 +21,8 @@
 package merkhet_test
 
 import (
+	"time"
+
 	. "github.com/homeport/disrupt-o-meter/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -37,7 +39,7 @@ var _ = Describe("Merkhet code test", func() {
 		BeforeEach(func() {
 			pool = NewPool()
 			callback = &MerketCallback{}
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 0), 10, 0, true, callback)
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 0), 0, 0, true, callback)
 		})
 
 		It("should have 1 merkhats", func() {
@@ -51,19 +53,68 @@ var _ = Describe("Merkhet code test", func() {
 
 		It("should have installed", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, &MerketCallback{
-				onInstall: func() {
+				onInstall: func() error {
 					Succeed()
+					return nil
 				},
 			})
 
 			pool.StartWorker(merkhet)
 
-			pool.ForEach(func(m Merkhet) { //This will synchronize the workflow
-				m.Install()
-			})
+			pool.ForEach(ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
+				merkhet.Install()
+			}))
 
 			pool.Shutdown()
 		})
+
+		It("should have executed correctly", func(done Done) {
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 0, true, &MerketCallback{
+				onExecute: func() error {
+					time.Sleep(time.Second)
+					return nil
+				},
+			})
+
+			pool.StartWorker(merkhet)
+
+			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) {
+				merkhet.Execute()
+				relay <- ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
+					Succeed()
+					close(done)
+				})
+			}))
+		}, 5*1000)
+
+		It("should not produce a data race and record a successful run", func(done Done) {
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 2, true, &MerketCallback{
+				onExecute: func() error {
+					time.Sleep(time.Second)
+					return nil
+				},
+			})
+
+			c := make(chan Result)
+			pool.StartWorker(merkhet)
+
+			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) {
+				e := merkhet.Execute()
+				relay <- ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
+					if e == nil {
+						merkhet.RecordSuccessfulRun()
+					} else {
+						merkhet.RecordFailedRun()
+					}
+
+					c <- merkhet.BuildResult()
+				})
+			}))
+
+			result := <-c
+			Expect(result.SuccessfulRuns()).To(BeEquivalentTo(1))
+			close(done)
+		}, 5*1000)
 
 		It("should pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)
