@@ -30,7 +30,7 @@ import (
 //
 // PostConnect is called after DOM successfully authenticated against the cloud foundry instance
 //
-// PostConnect is called after DOM successfully authenticated against the cloud foundery instance
+// PostConnect is called after DOM successfully authenticated against the cloud foundry instance
 //
 // BuildResult creates a new Result instance containing the
 //
@@ -86,7 +86,7 @@ func (p *PercentageConfiguration) Name() string {
 }
 
 // ValidRun returns if the failed runs compared to the total runs are below the provided percentage threshold
-func (p *PercentageConfiguration) ValidRun(totalRuns uint, failedRuns uint) bool {
+func (p *PercentageConfiguration) ValidRun(totalRuns int, failedRuns int) bool {
 	return (float64(failedRuns) / float64(totalRuns)) <= p.percentageThreshold
 }
 

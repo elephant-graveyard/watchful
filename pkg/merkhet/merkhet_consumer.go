@@ -23,7 +23,7 @@ package merkhet
 // ConsumerMethod describes the type of the methods allowed to consumer a merkhet
 type ConsumerMethod func(merkhet Merkhet, relay ControllerChannel)
 
-// Consumer defines an object that can consume a merkhet instnace
+// Consumer defines an object that can consume a merkhet instance
 type Consumer interface {
 	Consume(merkhet Merkhet, relay ControllerChannel)
 }
@@ -45,19 +45,19 @@ func ConsumeSync(m ConsumerMethod) Consumer {
 	}
 }
 
-// AsyncedConsumer is a consumer that executes the consuming method on a new go routine
-type AsyncedConsumer struct {
+// AsyncConsumer is a consumer that executes the consuming method on a new go routine
+type AsyncConsumer struct {
 	consumer ConsumerMethod
 }
 
 // Consume calls the passed consumer method in a new go routine
-func (a *AsyncedConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
+func (a *AsyncConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
 	go a.consumer(merkhet, relay)
 }
 
-// ConsumeAsync creates a asynced Consumer
+// ConsumeAsync creates a async Consumer
 func ConsumeAsync(m ConsumerMethod) Consumer {
-	return &AsyncedConsumer{
+	return &AsyncConsumer{
 		consumer: m,
 	}
 }
