@@ -54,6 +54,19 @@ docker run \
   golang:1.11 /bin/bash
 ```
 
+### Git pre-commit hooks
+When working with code, it may not always be the best idea to wait for travis to throw an error if your build failed.
+To automize your development workflow, it may be a good idea to use git pre-commit hooks. 
+
+These little snippets of code are run prior to a commit and can determine whether your commit should be accepted.
+In the case of disrupt-o-meter, a pre-commit hook could look something like this, calling both test and analysis make 
+targets before a commit.
+
+You can install the default pre-commit hook using this command in your disrupt-o-meter root directory:
+```sh 
+cat pre-commit.sh > .git/hooks/pre-commit && chmod u+x .git/hooks/pre-commit
+```
+
 ## License
 
 Licensed under [MIT License](https://github.com/homeport/disrupt-o-meter/blob/master/LICENSE)
