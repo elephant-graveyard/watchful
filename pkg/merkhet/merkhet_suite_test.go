@@ -35,7 +35,7 @@ func TestMerkhet(t *testing.T) {
 	RunSpecs(t, "disrupt-o-meter pkg merkhet suite")
 }
 
-type MerketCallback struct {
+type MerkhetCallback struct {
 	onInstall     func() error
 	onPostConnect func() error
 	onExecute     func() error
@@ -43,11 +43,11 @@ type MerketCallback struct {
 
 type MerkhetMock struct {
 	Config         Configuration
-	LokggerMock    logger.Logger
+	LoggerMock     logger.Logger
 	FailedRuns     int
 	SuccessfulRuns int
 	WillExecute    bool
-	Callback       *MerketCallback
+	Callback       *MerkhetCallback
 }
 
 func (s *MerkhetMock) RecordSuccessfulRun() {
@@ -88,17 +88,17 @@ func (s *MerkhetMock) Configuration() Configuration {
 }
 
 func (s *MerkhetMock) Logger() logger.Logger {
-	return s.LokggerMock
+	return s.LoggerMock
 }
 
-func NewMerkhetMock(config Configuration, totalRuns int, fails int, canExecute bool, callback *MerketCallback) *MerkhetMock {
+func NewMerkhetMock(config Configuration, totalRuns int, fails int, canExecute bool, callback *MerkhetCallback) *MerkhetMock {
 	return &MerkhetMock{
-		SuccessfulRuns:   totalRuns,
-		FailedRuns:  fails,
-		WillExecute: canExecute,
-		Config:      config,
-		LokggerMock: NewLoggerMock(),
-		Callback:    callback,
+		SuccessfulRuns: totalRuns,
+		FailedRuns:     fails,
+		WillExecute:    canExecute,
+		Config:         config,
+		LoggerMock:     NewLoggerMock(),
+		Callback:       callback,
 	}
 }
 

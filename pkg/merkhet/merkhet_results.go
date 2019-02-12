@@ -25,7 +25,7 @@ package merkhet
 // SuccessfulRuns returns the total amount of runs the merkhet instance ran
 // at the time this result instance was created
 //
-// FailedRuns returns the total amount of faild runs the merkhet instance that build
+// FailedRuns returns the total amount of failed runs the merkhet instance that build
 // this result produced
 //
 // Valid returns if the result was marked valid by the Merkhet instance that build it
@@ -48,7 +48,7 @@ func (s *SimpleResult) SuccessfulRuns() int {
 	return s.totalRuns
 }
 
-// FailedRuns returns the total amount of faild runs the merkhet instance that build
+// FailedRuns returns the total amount of failed runs the merkhet instance that build
 // this result produced
 func (s *SimpleResult) FailedRuns() int {
 	return s.totalFails

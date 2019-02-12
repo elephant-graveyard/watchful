@@ -36,7 +36,7 @@ import (
 //
 // Sync executes the command in sync to the go routine it was called in, returning the result
 //
-// Async executes the command in a new go routine, calls the passed callback after execution and returns a waitgroup
+// Async executes the command in a new go routine, calls the passed callback after execution and returns a wait-group
 // that is tracking the state of the execution
 type CommandPromise interface {
 	SubscribeOnOut(writer io.Writer) CommandPromise

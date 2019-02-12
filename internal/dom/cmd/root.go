@@ -29,7 +29,7 @@ import (
 
 var cfgFile string
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any sub-commands
 var rootCmd = &cobra.Command{
 	Use:   "disrupt-o-meter",
 	Short: "A tool to measure the disruption caused by a command to a Cloud Foundry instance",

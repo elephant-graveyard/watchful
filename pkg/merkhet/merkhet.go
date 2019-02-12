@@ -30,7 +30,7 @@ import (
 //
 // PostConnect is called after DOM successfully authenticated against the cloud foundry instance
 //
-// PostConnect is called after DOM successfully authenticated against the cloud founery instance
+// PostConnect is called after DOM successfully authenticated against the cloud foundry instance
 //
 // BuildResult creates a new Result instance containing the
 //
@@ -64,7 +64,7 @@ type Configuration interface {
 	ValidRun(totalRuns int, failedRuns int) bool
 }
 
-// namedConfiguration is a simple structure containing the name of a MerhetConfiguration
+// namedConfiguration is a simple structure containing the name of a MerkhetConfiguration
 type namedConfiguration struct {
 	name string
 }

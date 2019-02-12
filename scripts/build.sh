@@ -24,7 +24,7 @@ set -euo pipefail
 
 BASEDIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-for TOOL in git cut; do
+for TOOL in git cut pina-golada; do
   if ! hash "${TOOL}" 2>/dev/null; then
     echo -e "Required tool \\033[1m${TOOL}\\033[0m is not installed."
     echo
@@ -42,6 +42,9 @@ go mod verify
 # GOOS options: darwin dragonfly freebsd linux nacl netbsd openbsd plan9 solaris windows
 # GOARCH options: 386 amd64 amd64p32 arm arm64 ppc64 ppc64le mips mipsle mips64 mips64le s390x
 #
+echo -e "\\n\\033[1mCompiling assets:\\033[0m"
+pina-golada generate
+
 echo -e "\\n\\033[1mCompiling ${TOOL_NAME} binaries:\\033[0m"
 while read -r OS ARCH; do
   TARGET_FILE="${BASEDIR}/binaries/${TOOL_NAME}-${OS}-${ARCH}"
@@ -52,7 +55,7 @@ while read -r OS ARCH; do
   echo -e "Running go build of version \\033[1;3m${TOOL_VERSION}\\033[0m for \\033[1;91m${OS}\\033[0m/\\033[1;31m${ARCH}\\033[0m: \\033[93m$(basename "${TARGET_FILE}")\\033[0m"
   CGO_ENABLED=0 GOOS="${OS}" GOARCH="${ARCH}" go build \
     -tags netgo \
-    -ldflags "-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/cmd.version=${TOOL_VERSION}" \
+    -ldflags "-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/dom/cmd.version=${TOOL_VERSION}" \
     -o "${TARGET_FILE}" \
     cmd/dom/main.go
 
@@ -75,5 +78,8 @@ elif hash sha1sum >/dev/null 2>&1; then
   echo -e '\n\033[1mSHA sum of compiled binaries:\033[0m'
   sha1sum binaries/*
 fi
+
+pina-golada cleanup
+echo -e "\\n\\033[1mCleaned up assets\\033[0m"
 
 echo

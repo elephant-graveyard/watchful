@@ -1,47 +1,47 @@
 {
-    "cf": {
-        "domain": "file-json-test.com",
-        "api-endpoint": "a.test.com",
-        "skip-ssl-validation": true,
-        "custom-cli-parameters": [
-            "--test"
-        ],
-        "username": "testuser",
-        "password": "test_password"
-    },
-    "tasks": [
-        {
-            "cmd": "/bin/bash",
-            "args": [
-                "-c",
-                "#!/bin/bash\n\nset -euo pipefail\n\necho \"Hello, World!\"\nping -c 10 github.com\n"
-            ]
-        }
+  "cf": {
+    "domain": "file-json-test.com",
+    "api-endpoint": "a.test.com",
+    "skip-ssl-validation": true,
+    "custom-cli-parameters": [
+      "--test"
     ],
-    "merkhets": [
-        {
-            "name": "app-pushability",
-            "threshold": "3%"
-        },
-        {
-            "name": "http-availability",
-            "threshold": "10"
-        },
-        {
-            "name": "cf-log-functionality",
-            "threshold": "42%"
-        },
-        {
-            "name": "cf-recent-log-functionality",
-            "threshold": "0"
-        },
-        {
-            "name": "syslog-functionality",
-            "threshold": "55.555%"
-        }
-    ],
-    "logger-config": {
-        "time-location": "UTC",
-        "print-logger-name": true
+    "username": "testuser",
+    "password": "test_password"
+  },
+  "tasks": [
+    {
+      "cmd": "/bin/bash",
+      "args": [
+        "-c",
+        "#!/bin/bash\n\nset -euo pipefail\n\necho \"Hello, World!\"\nping -c 10 github.com\n"
+      ]
     }
+  ],
+  "merkhets": [
+    {
+      "name": "app-pushability",
+      "threshold": "3%"
+    },
+    {
+      "name": "http-availability",
+      "threshold": "10"
+    },
+    {
+      "name": "cf-log-functionality",
+      "threshold": "42%"
+    },
+    {
+      "name": "cf-recent-log-functionality",
+      "threshold": "0"
+    },
+    {
+      "name": "syslog-functionality",
+      "threshold": "55.555%"
+    }
+  ],
+  "logger-config": {
+    "time-location": "UTC",
+    "print-logger-name": true
+  }
 }

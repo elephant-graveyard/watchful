@@ -32,17 +32,17 @@ var _ = Describe("Merkhet code test", func() {
 	Context("Testing default behaviour of merkhet instances", func() {
 		var (
 			pool     Pool
-			callback *MerketCallback
+			callback *MerkhetCallback
 			merkhet  Merkhet
 		)
 
 		BeforeEach(func() {
 			pool = NewPool()
-			callback = &MerketCallback{}
+			callback = &MerkhetCallback{}
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 0), 0, 0, true, callback)
 		})
 
-		It("should have 1 merkhats", func() {
+		It("should have 1 merkhet", func() {
 			pool.StartWorker(merkhet)
 			Expect(pool.Size()).To(BeNumerically("==", 1))
 		})
@@ -52,7 +52,7 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("should have installed", func() {
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, &MerketCallback{
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, &MerkhetCallback{
 				onInstall: func() error {
 					Succeed()
 					return nil
@@ -69,7 +69,7 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("should have executed correctly", func(done Done) {
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 0, true, &MerketCallback{
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 0, true, &MerkhetCallback{
 				onExecute: func() error {
 					time.Sleep(time.Second)
 					return nil
@@ -88,7 +88,7 @@ var _ = Describe("Merkhet code test", func() {
 		}, 5*1000)
 
 		It("should not produce a data race and record a successful run", func(done Done) {
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 2, true, &MerketCallback{
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 2, true, &MerkhetCallback{
 				onExecute: func() error {
 					time.Sleep(time.Second)
 					return nil

@@ -4,33 +4,33 @@ cf:
   api-endpoint: api.domain.com
   skip-ssl-validation: true
   custom-cli-parameters:
-  - --verbose
+    - --verbose
   username: username
   password: password
 
 tasks:
-- cmd: /bin/bash
-  args:
-  - -c
-  - |
-    #!/bin/bash
+  - cmd: /bin/bash
+    args:
+      - -c
+      - |
+        #!/bin/bash
 
-    set -euo pipefail
+        set -euo pipefail
 
-    echo "Hello, World!"
-    ping -c 10 github.com
+        echo "Hello, World!"
+        ping -c 10 github.com
 
 merkhets:
-- name: app-pushability
-  threshold: '3%'
-- name: http-availability
-  threshold: '10'
-- name: cf-log-functionality
-  threshold: '42%'
-- name: cf-recent-log-functionality
-  threshold: '0'
-- name: syslog-functionality
-  threshold: '55.555%'
+  - name: app-pushability
+    threshold: '3%'
+  - name: http-availability
+    threshold: '10'
+  - name: cf-log-functionality
+    threshold: '42%'
+  - name: cf-recent-log-functionality
+    threshold: '0'
+  - name: syslog-functionality
+    threshold: '55.555%'
 
 logger-config:
   time-location: UTC

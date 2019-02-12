@@ -45,7 +45,7 @@ type SimplePool struct {
 // StartWorker pushes a new merkhet instance into the Pool
 func (s *SimplePool) StartWorker(m Merkhet) {
 	worker := NewMerkhetWorker(m)
-	go worker.StartWorker() //Start the worker instance in a different go routine
+	go worker.StartWorker() // Start the worker instance in a different go routine
 
 	s.workers = append(s.workers, worker)
 }
