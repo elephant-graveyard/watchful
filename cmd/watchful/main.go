@@ -18,29 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cmd
+package main
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/spf13/cobra"
+	"github.com/homeport/watchful/internal/watchful/cmd"
 )
 
-var cfgFile string
-
-// rootCmd represents the base command when called without any sub-commands
-var rootCmd = &cobra.Command{
-	Use:   "disrupt-o-meter",
-	Short: "A tool to measure the disruption caused by a command to a Cloud Foundry instance",
-	Long:  `A tool to measure the disruption caused by a command to a Cloud Foundry instance. The obvious use-case would be the roll-out of an update to Cloud Foundry, which usually requires some or all of the micro services to restart.`,
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+func main() {
+	cmd.Execute()
 }

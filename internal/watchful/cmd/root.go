@@ -21,26 +21,26 @@
 package cmd
 
 import (
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
-var version string
+var cfgFile string
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Shows the version",
-	Long:  `Shows the version`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(version) == 0 {
-			version = "development"
-		}
-
-		_, _ = bunt.Printf("*disrupt-o-meter* version DimGray{%s}\n", version)
-	},
+// rootCmd represents the base command when called without any sub-commands
+var rootCmd = &cobra.Command{
+	Use:   "watchful",
+	Short: "A tool to measure the disruption caused by a command to a Cloud Foundry instance",
+	Long:  `A tool to measure the disruption caused by a command to a Cloud Foundry instance. The obvious use-case would be the roll-out of an update to Cloud Foundry, which usually requires some or all of the micro services to restart.`,
 }
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }

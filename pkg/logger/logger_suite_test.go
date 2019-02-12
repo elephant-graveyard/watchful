@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/homeport/disrupt-o-meter/pkg/logger"
+	. "github.com/homeport/watchful/pkg/logger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -32,7 +32,7 @@ import (
 
 func TestLogger(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg logger suite")
+	RunSpecs(t, "watchful pkg logger suite")
 }
 
 type PipelineMock struct {

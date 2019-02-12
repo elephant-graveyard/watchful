@@ -32,7 +32,7 @@ import (
 
 	"github.com/homeport/gonvenience/pkg/v1/bunt"
 
-	"github.com/homeport/disrupt-o-meter/pkg/utf8chunk"
+	"github.com/homeport/watchful/pkg/utf8chunk"
 
 	"github.com/homeport/gonvenience/pkg/v1/term"
 )

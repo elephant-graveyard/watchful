@@ -1,12 +1,12 @@
-# disrupt-o-meter /dis-ˈrəpt-ō-mē-tər/
+# watchful /ˈwɒtʃf(ə)l/
 
-[![License](https://img.shields.io/github/license/homeport/disrupt-o-meter.svg)](https://github.com/homeport/disrupt-o-meter/blob/master/LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/homeport/disrupt-o-meter)](https://goreportcard.com/report/github.com/homeport/disrupt-o-meter)
-[![Build Status](https://travis-ci.org/homeport/disrupt-o-meter.svg?branch=develop)](https://travis-ci.org/homeport/disrupt-o-meter)
-[![GoDoc](https://godoc.org/github.com/homeport/disrupt-o-meter?status.svg)](https://godoc.org/github.com/homeport/disrupt-o-meter)
-[![Release](https://img.shields.io/github/release/homeport/disrupt-o-meter.svg)](https://github.com/homeport/disrupt-o-meter/releases/latest)
+[![License](https://img.shields.io/github/license/homeport/watchful.svg)](https://github.com/homeport/watchful/blob/master/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/homeport/watchful)](https://goreportcard.com/report/github.com/homeport/watchful)
+[![Build Status](https://travis-ci.org/homeport/watchful.svg?branch=develop)](https://travis-ci.org/homeport/watchful)
+[![GoDoc](https://godoc.org/github.com/homeport/watchful?status.svg)](https://godoc.org/github.com/homeport/watchful)
+[![Release](https://img.shields.io/github/release/homeport/watchful.svg)](https://github.com/homeport/watchful/releases/latest)
 
-## Introducing the disrupt-o-meter
+## Introducing the watchful
 
 A tool to measure the disruption caused by a change to a Cloud Foundry environment. The most obvious use-case would be the roll-out of an update of Cloud Foundry itself. Usually this requires some or all of the internal micro services to restart. The respective setup with means to achieve some form of high availability will step in to make sure an end-user does not notice the software maintenance. As always, you cannot always make sure there is no flicker or lost HTTP request. The main purpose of this tool is to measure the impact of a maintenance and to report the metrics to the operator. This project is highly influenced by the [uptimer tool](https://github.com/cloudfoundry/uptimer) from the Cloud Foundry community.
 
@@ -49,8 +49,8 @@ docker run \
   --interactive \
   --tty \
   --rm \
-  --volume $GOPATH/src/github.com/homeport/disrupt-o-meter:/go/src/github.com/homeport/disrupt-o-meter \
-  --workdir /go/src/github.com/homeport/disrupt-o-meter \
+  --volume $GOPATH/src/github.com/homeport/watchful:/go/src/github.com/homeport/watchful \
+  --workdir /go/src/github.com/homeport/watchful \
   golang:1.11 /bin/bash
 ```
 
@@ -59,14 +59,14 @@ When working with code, it may not always be the best idea to wait for travis to
 To automize your development workflow, it may be a good idea to use git pre-commit hooks. 
 
 These little snippets of code are run prior to a commit and can determine whether your commit should be accepted.
-In the case of disrupt-o-meter, a pre-commit hook could look something like this, calling both test and analysis make 
+In the case of watchful, a pre-commit hook could look something like this, calling both test and analysis make 
 targets before a commit.
 
-You can install the default pre-commit hook using this command in your disrupt-o-meter root directory:
+You can install the default pre-commit hook using this command in your watchful root directory:
 ```sh 
 cat pre-commit.sh > .git/hooks/pre-commit && chmod u+x .git/hooks/pre-commit
 ```
 
 ## License
 
-Licensed under [MIT License](https://github.com/homeport/disrupt-o-meter/blob/master/LICENSE)
+Licensed under [MIT License](https://github.com/homeport/watchful/blob/master/LICENSE)

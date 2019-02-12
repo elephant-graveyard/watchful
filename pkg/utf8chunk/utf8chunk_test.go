@@ -21,7 +21,7 @@
 package utf8chunk_test
 
 import (
-	"github.com/homeport/disrupt-o-meter/pkg/utf8chunk"
+	"github.com/homeport/watchful/pkg/utf8chunk"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

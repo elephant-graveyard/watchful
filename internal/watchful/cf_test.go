@@ -18,16 +18,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cfg_test
+package watchful_test
 
 import (
-	"testing"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestDom(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter internal config suite")
-}
+var _ = Describe("Cloud Foundry library code", func() {
+	Context("With a Fake Cloud Foundry", func() {
+		var (
+			cf     CloudFoundry
+			client *cfclient.Client
+		)
+
+		BeforeEach(func() {
+			cf = NewFakeCloudFoundry()
+
+			var err error
+			client, err = cfclient.NewClient(&cfclient.Config{
+				ApiAddress: cf.Server.URL,
+				Token:      "foobar",
+			})
+
+			Expect(err).To(BeNil())
+		})
+
+		AfterEach(func() {
+			cf.Teardown()
+		})
+
+		It("should not have any apps", func() {
+			apps, err := client.ListApps()
+			Expect(err).To(BeNil())
+
+			Expect(apps).To(BeEquivalentTo([]cfclient.App{}))
+		})
+	})
+})

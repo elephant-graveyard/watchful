@@ -18,12 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
-
-import (
-	"github.com/homeport/disrupt-o-meter/internal/dom/cmd"
-)
-
-func main() {
-	cmd.Execute()
-}
+// Package watchful is short for watchful and is the main internal package for
+// code of the tool of the same name.
+package watchful

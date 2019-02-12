@@ -23,7 +23,7 @@ package cfw_test
 import (
 	"fmt"
 
-	"github.com/homeport/disrupt-o-meter/pkg/cfw"
+	"github.com/homeport/watchful/pkg/cfw"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

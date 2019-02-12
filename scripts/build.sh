@@ -32,7 +32,7 @@ for TOOL in git cut pina-golada; do
   fi
 done
 
-TOOL_NAME="disrupt-o-meter"
+TOOL_NAME="watchful"
 TOOL_VERSION="$(git describe --tags 2>/dev/null || (git rev-parse HEAD | cut -c-8))"
 
 export GO111MODULE=on
@@ -55,9 +55,9 @@ while read -r OS ARCH; do
   echo -e "Running go build of version \\033[1;3m${TOOL_VERSION}\\033[0m for \\033[1;91m${OS}\\033[0m/\\033[1;31m${ARCH}\\033[0m: \\033[93m$(basename "${TARGET_FILE}")\\033[0m"
   CGO_ENABLED=0 GOOS="${OS}" GOARCH="${ARCH}" go build \
     -tags netgo \
-    -ldflags "-s -w -extldflags '-static' -X github.com/homeport/disrupt-o-meter/internal/dom/cmd.version=${TOOL_VERSION}" \
+    -ldflags "-s -w -extldflags '-static' -X github.com/homeport/watchful/internal/watchful/cmd.version=${TOOL_VERSION}" \
     -o "${TARGET_FILE}" \
-    cmd/dom/main.go
+    cmd/watchful/main.go
 
 done <<EOL
 darwin amd64

@@ -20,8 +20,8 @@
 
 package cfg
 
-// DOMConfig is a structure defining the configuration of the disrupt-o-meter
-type DOMConfig struct {
+// WatchfulConfig is a structure defining the configuration of the watchful project
+type WatchfulConfig struct {
 	CloudFoundryConfig    CloudFoundryConfig     `yaml:"cf"`
 	TaskConfigurations    []TaskConfiguration    `yaml:"tasks"`
 	MerkhetConfigurations []MerkhetConfiguration `yaml:"merkhets"`
@@ -50,7 +50,7 @@ type MerkhetConfiguration struct {
 	Threshold string `yaml:"threshold"`
 }
 
-// LoggerConfiguration is the config for the logger system dom uses
+// LoggerConfiguration is the config for the logger system watchful uses
 type LoggerConfiguration struct {
 	TimeLocation    string `yaml:"time-location"`
 	PrintLoggerName bool   `yaml:"print-logger-name"`

@@ -21,7 +21,7 @@
 package cfw
 
 import (
-	"github.com/homeport/disrupt-o-meter/pkg/logger"
+	"github.com/homeport/watchful/pkg/logger"
 )
 
 // CloudFoundryWorker defines a worker object that is capable of executing specific commands

@@ -24,15 +24,15 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/homeport/disrupt-o-meter/pkg/logger"
-	. "github.com/homeport/disrupt-o-meter/pkg/merkhet"
+	"github.com/homeport/watchful/pkg/logger"
+	. "github.com/homeport/watchful/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 func TestMerkhet(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg merkhet suite")
+	RunSpecs(t, "watchful pkg merkhet suite")
 }
 
 type MerkhetCallback struct {

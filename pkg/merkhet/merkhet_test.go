@@ -23,7 +23,7 @@ package merkhet_test
 import (
 	"time"
 
-	. "github.com/homeport/disrupt-o-meter/pkg/merkhet"
+	. "github.com/homeport/watchful/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

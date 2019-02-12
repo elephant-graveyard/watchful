@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package dom_test
+package watchful_test
 
 import (
 	"encoding/json"
@@ -34,9 +34,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDom(t *testing.T) {
+func TestWatchful(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter internal suite")
+	RunSpecs(t, "watchful internal suite")
 }
 
 type CloudFoundry struct {

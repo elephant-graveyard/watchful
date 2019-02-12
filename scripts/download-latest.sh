@@ -27,7 +27,7 @@ if ! hash curl 2>/dev/null; then
 fi
 
 if [[ "$(uname -m)" != "x86_64" ]]; then
-  echo -e "Unsupported machine type \\033[1m$(uname -m)\\033[0m: Please check \\033[4;94mhttps://api.github.com/repos/homeport/disrupt-o-meter/releases\\033[0m manually"
+  echo -e "Unsupported machine type \\033[1m$(uname -m)\\033[0m: Please check \\033[4;94mhttps://api.github.com/repos/homeport/watchful/releases\\033[0m manually"
   exit 1
 fi
 
@@ -38,7 +38,7 @@ if [[ $# -eq 0 ]]; then
   fi
 
   # Find the latest version using the GitHub API
-  SELECTED_TAG="$(curl --silent --location https://api.github.com/repos/homeport/disrupt-o-meter/releases | jq --raw-output '.[0].tag_name')"
+  SELECTED_TAG="$(curl --silent --location https://api.github.com/repos/homeport/watchful/releases | jq --raw-output '.[0].tag_name')"
 else
   # Use provided argument as tag to download
   SELECTED_TAG="$1"
@@ -61,12 +61,12 @@ fi
 # Download and install
 case "${SYSTEM_UNAME}" in
   darwin | linux)
-    DOWNLOAD_URI="https://github.com/homeport/disrupt-o-meter/releases/download/${SELECTED_TAG}/disrupt-o-meter-${SYSTEM_UNAME}-amd64"
+    DOWNLOAD_URI="https://github.com/homeport/watchful/releases/download/${SELECTED_TAG}/watchful-${SYSTEM_UNAME}-amd64"
 
     echo -e "Downloading \\033[4;94m${DOWNLOAD_URI}\\033[0m to place it into \\033[1m${TARGET_DIR}\\033[0m"
-    if curl --fail --progress-bar --location "${DOWNLOAD_URI}" --output "${TARGET_DIR}/disrupt-o-meter"; then
-      chmod a+rx "${TARGET_DIR}/disrupt-o-meter"
-      echo -e "\\nSuccessfully installed \\033[1mdisrupt-o-meter\\033[0m into \\033[1m${TARGET_DIR}\\033[0m\\n"
+    if curl --fail --progress-bar --location "${DOWNLOAD_URI}" --output "${TARGET_DIR}/watchful"; then
+      chmod a+rx "${TARGET_DIR}/watchful"
+      echo -e "\\nSuccessfully installed \\033[1mwatchful\\033[0m into \\033[1m${TARGET_DIR}\\033[0m\\n"
     fi
     ;;
 
