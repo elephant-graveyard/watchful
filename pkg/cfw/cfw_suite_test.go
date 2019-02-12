@@ -29,5 +29,5 @@ import (
 
 func TestNewCloudFoundryWorker(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg cfw suite")
+	RunSpecs(t, "watchful pkg cfw suite")
 }

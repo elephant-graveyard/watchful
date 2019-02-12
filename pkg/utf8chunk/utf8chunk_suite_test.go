@@ -27,7 +27,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDom(t *testing.T) {
+func TestUTF8Chunk(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "disrupt-o-meter pkg utf8-chunks suite")
+	RunSpecs(t, "watchful pkg utf8-chunks suite")
 }

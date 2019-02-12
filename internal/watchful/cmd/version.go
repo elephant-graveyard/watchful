@@ -18,29 +18,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cfg
+package cmd
 
 import (
-	"io/ioutil"
-
-	yaml "gopkg.in/yaml.v2"
+	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"github.com/spf13/cobra"
 )
 
-// ParseFromFile parses the contents of the file located under the given string
-// into the config instance passed as the second parameter.
-// The function returns an error if one occurred or nil if everything worked fine
-func ParseFromFile(file string, config interface{}) error {
-	fileContent, e := ioutil.ReadFile(file)
-	if e != nil {
-		return e
-	}
+var version string
 
-	return yaml.UnmarshalStrict(fileContent, config)
+// versionCmd represents the version command
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Shows the version",
+	Long:  `Shows the version`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(version) == 0 {
+			version = "development"
+		}
+
+		_, _ = bunt.Printf("*watchful* version DimGray{%s}\n", version)
+	},
 }
 
-// ParseFromString parses contents of the string provided as a parameter
-// into the config instance passed as the second parameter.
-// The function returns an error if one occurred or nil if everything worked fine
-func ParseFromString(content string, config interface{}) error {
-	return yaml.UnmarshalStrict([]byte(content), config)
+func init() {
+	rootCmd.AddCommand(versionCmd)
 }

@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/homeport/disrupt-o-meter/pkg/logger"
+	. "github.com/homeport/watchful/pkg/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

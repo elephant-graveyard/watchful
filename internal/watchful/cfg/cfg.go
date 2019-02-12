@@ -18,8 +18,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/*
-Package dom is short for disrupt-o-meter and is the main internal package for
-code of the tool of the same name.
-*/
-package dom
+package cfg
+
+import (
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
+)
+
+// ParseFromFile parses the contents of the file located under the given string
+// into the config instance passed as the second parameter.
+// The function returns an error if one occurred or nil if everything worked fine
+func ParseFromFile(file string, config interface{}) error {
+	fileContent, e := ioutil.ReadFile(file)
+	if e != nil {
+		return e
+	}
+
+	return yaml.UnmarshalStrict(fileContent, config)
+}
+
+// ParseFromString parses contents of the string provided as a parameter
+// into the config instance passed as the second parameter.
+// The function returns an error if one occurred or nil if everything worked fine
+func ParseFromString(content string, config interface{}) error {
+	return yaml.UnmarshalStrict([]byte(content), config)
+}

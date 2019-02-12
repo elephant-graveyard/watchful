@@ -21,16 +21,16 @@
 package merkhet
 
 import (
-	"github.com/homeport/disrupt-o-meter/pkg/logger"
+	"github.com/homeport/watchful/pkg/logger"
 )
 
 // Merkhet defines a runnable measurement task that can be executed during the Cloud Foundry maintenance
 //
 // Install installs the merkhet instance. This method call will be used to setup necessary dependencies of the merkhet
 //
-// PostConnect is called after DOM successfully authenticated against the cloud foundry instance
+// PostConnect is called after watchful successfully authenticated against the cloud foundry instance
 //
-// PostConnect is called after DOM successfully authenticated against the cloud foundry instance
+// PostConnect is called after watchful successfully authenticated against the cloud foundry instance
 //
 // BuildResult creates a new Result instance containing the
 //

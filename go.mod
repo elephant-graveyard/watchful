@@ -1,4 +1,4 @@
-module github.com/homeport/disrupt-o-meter
+module github.com/homeport/watchful
 
 require (
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190114203233-22d02065b53f

@@ -21,7 +21,7 @@
 package cfg_test
 
 import (
-	"github.com/homeport/disrupt-o-meter/internal/dom/cfg"
+	"github.com/homeport/watchful/internal/watchful/cfg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -30,11 +30,11 @@ var _ = Describe("Configuration testing", func() {
 	Context("Tests the parsing of the config model from string file yaml and json", func() {
 
 		var (
-			config cfg.DOMConfig
+			config cfg.WatchfulConfig
 		)
 
 		BeforeEach(func() {
-			config = cfg.DOMConfig{}
+			config = cfg.WatchfulConfig{}
 		})
 
 		It("Should read the config from the model yaml file", func() {
@@ -69,7 +69,7 @@ cf:
 		})
 
 		It("Should read the config from a string json", func() {
-			var body string = `{"cf":{"domain":"string-json-test.com","api-endpoint":"a.test.com","skip-ssl-validation":true,"custom-cli-parameters":["--test"],"username":"testuser","password":"test_password"}}`
+			var body = `{"cf":{"domain":"string-json-test.com","api-endpoint":"a.test.com","skip-ssl-validation":true,"custom-cli-parameters":["--test"],"username":"testuser","password":"test_password"}}`
 
 			Expect(cfg.ParseFromString(body, &config)).To(BeNil())
 
