@@ -22,6 +22,7 @@ package cfw
 
 import (
 	"github.com/homeport/watchful/pkg/logger"
+	"os/exec"
 )
 
 // CloudFoundryWorker defines a worker object that is capable of executing specific commands
@@ -52,6 +53,21 @@ type SimpleCloudFoundryWorker struct {
 // It returns any error that may occur, or nil if the operation was successful
 func (s *SimpleCloudFoundryWorker) Authenticate(cert CloudFoundryCertificate) error {
 	return s.cli.Auth(cert.APIEndPoint, cert.Username, cert.Password).Sync()
+}
+
+// Logger returns the logger instance the worker task is using
+func (s *SimpleCloudFoundryWorker) Logger() logger.Logger {
+	return s.logger
+}
+
+// Execute executes the provided task against the cloud foundry instance it is working on
+// If the worker is not authenticated it will error, else it will try to execute the
+// task on the same go routine it was called in
+func (s *SimpleCloudFoundryWorker) Execute(task CloudFoundryTask) error {
+	promise := NewSimpleCommandPromise(exec.Command(task.Command, task.Parameters...))
+	promise.SubscribeOnOut(s.Logger().ReportingOn(logger.Info))
+	promise.SubscribeOnErr(s.Logger().ReportingOn(logger.Error))
+	return promise.Sync()
 }
 
 // NewCloudFoundryWorker creates a new instance of the SimpleCloudFoundryWorker struct
