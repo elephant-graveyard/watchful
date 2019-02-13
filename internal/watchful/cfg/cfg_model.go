@@ -20,6 +20,10 @@
 
 package cfg
 
+import (
+	"time"
+)
+
 // WatchfulConfig is a structure defining the configuration of the watchful project
 type WatchfulConfig struct {
 	CloudFoundryConfig    CloudFoundryConfig     `yaml:"cf"`
@@ -48,12 +52,21 @@ type TaskConfiguration struct {
 
 // MerkhetConfiguration is the configuration of one merkhet instance running
 type MerkhetConfiguration struct {
-	Name      string `yaml:"name"`
-	Threshold string `yaml:"threshold"`
+	Name          string         `yaml:"name"`
+	Threshold     string         `yaml:"threshold"`
+	HeartbeatRate *time.Duration `yaml:"heartbeat"`
 }
 
 // LoggerConfiguration is the config for the logger system watchful uses
 type LoggerConfiguration struct {
 	TimeLocation    string `yaml:"time-location"`
 	PrintLoggerName bool   `yaml:"print-logger-name"`
+}
+
+// GetHeartbeatRate returns the rate in which the heart of the merkhet beats
+func (m MerkhetConfiguration) GetHeartbeatRate(defaultValue time.Duration) time.Duration {
+	if m.HeartbeatRate == nil {
+		return defaultValue
+	}
+	return *m.HeartbeatRate
 }

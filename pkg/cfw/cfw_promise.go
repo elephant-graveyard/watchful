@@ -22,6 +22,7 @@ package cfw
 
 import (
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 )
@@ -41,6 +42,7 @@ import (
 type CommandPromise interface {
 	SubscribeOnOut(writer io.Writer) CommandPromise
 	SubscribeOnErr(writer io.Writer) CommandPromise
+	Environment(key string, value string) CommandPromise
 	Sync() error
 	Async(subscriber func(e error)) *sync.WaitGroup
 }
@@ -72,6 +74,17 @@ func (c *SimpleCommandPromise) SubscribeOnOut(writer io.Writer) CommandPromise {
 func (c *SimpleCommandPromise) SubscribeOnErr(writer io.Writer) CommandPromise {
 	for _, c := range c.commands {
 		c.Stderr = writer
+	}
+	return c
+}
+
+// Environment adds a new environment variable
+func (c *SimpleCommandPromise) Environment(key string, value string) CommandPromise {
+	for _, c := range c.commands {
+		if len(c.Env) < 1 {
+			c.Env = os.Environ() // Store the default env anyway !
+		}
+		c.Env = append(c.Env, key+"="+value)
 	}
 	return c
 }

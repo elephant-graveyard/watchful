@@ -53,12 +53,16 @@ cf:
   custom-cli-parameters:
   - --test
   username: test_user
-  password: test_password`
+  password: test_password
+logger-config:
+  time-location: UTC
+  print-logger-name: true`
 
 			Expect(cfg.ParseFromString(body, &config)).To(BeNil())
 
 			Expect(config.CloudFoundryConfig.SkipSSLValidation).To(BeTrue())
 			Expect(config.CloudFoundryConfig.Domain).To(BeEquivalentTo("string-yaml-test.com"))
+			Expect(config.LoggerConfiguration.PrintLoggerName).To(BeTrue())
 		})
 
 		It("Should read the config from the model json file", func() {

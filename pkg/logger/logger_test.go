@@ -146,10 +146,13 @@ var _ = Describe("Logger code test", func() {
 		})
 
 		It("Should send messages to the terminal correctly", func(done Done) {
-			loggerGroupConfig := []int{0, 1}
-			p := NewSplitPipeline(NewSplitPipelineConfig(true, *time.FixedZone("UTC", 0), 80, loggerGroupConfig), os.Stdout) // 200 is the fixed size of a terminal this thing will use, as ginkgo overwrites it
-			c := NewLoggerCluster(p, channelProvider, time.Second)
 			other := loggerFactory.NewChanneledLogger("other")
+
+			group := NewGroupContainer().NewGroup(logger).NewGroup(other)
+
+			p := NewSplitPipeline(NewSplitPipelineConfig(true, time.FixedZone("UTC", 0), 80,
+				group), os.Stdout) // 200 is the fixed size of a terminal this thing will use, as ginkgo overwrites it
+			c := NewLoggerCluster(p, channelProvider, time.Second)
 			p.Observer(func(s string) {
 				if strings.Contains(s, "done") {
 					Succeed()

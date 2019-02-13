@@ -22,6 +22,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -29,8 +30,11 @@ import (
 func main() {
 	go spamLog(time.Second)
 
+	fmt.Println("Starting watchful sample app for curl merkhets!")
 	http.HandleFunc("/", renderIndexPage)
-	_ = http.ListenAndServe(":80", nil)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func renderIndexPage(out http.ResponseWriter, in *http.Request) {

@@ -18,10 +18,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cfw
+package executable
 
-// CloudFoundryCertificate is a struct containing the needed login information for a cloud foundry instance
-type CloudFoundryCertificate struct {
-	Username    string
-	Password    string
+import (
+	"github.com/homeport/watchful/pkg/cfw"
+	"github.com/homeport/watchful/pkg/logger"
+)
+
+// TeardownExecutable tears down the cf test instance
+type TeardownExecutable struct {
+	WatchfulLogger logger.Logger
+	Worker         cfw.CloudFoundryWorker
+}
+
+// NewTeardownExecutable creates a new teardown task
+func NewTeardownExecutable(watchfulLogger logger.Logger, worker cfw.CloudFoundryWorker) *TeardownExecutable {
+	return &TeardownExecutable{WatchfulLogger: watchfulLogger, Worker: worker}
+}
+
+// Execute executes a teardown
+func (e *TeardownExecutable) Execute() error {
+	e.WatchfulLogger.WriteString(logger.Info, "Tearing down test environment")
+	if err := e.Worker.TeardownTestEnvironment(); err != nil {
+		e.WatchfulLogger.WriteString(logger.Error, "Could not teardown test environment")
+		return err
+	}
+
+	return nil
 }

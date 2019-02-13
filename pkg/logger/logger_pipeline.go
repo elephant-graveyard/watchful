@@ -21,16 +21,13 @@
 package logger
 
 import (
-	"errors"
 	"fmt"
+	"github.com/homeport/gonvenience/pkg/v1/bunt"
 	"io"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
 
 	"github.com/homeport/watchful/pkg/utf8chunk"
 
@@ -71,26 +68,33 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 		return
 	}
 
-	finalOutput := make([][]string, s.config.LoggerGroupCount)
+	finalOutput := make([][]string, s.config.GroupContainer.GroupCount())
 
 	for _, m := range messages {
-		if len(s.config.LoggerGroup) < m.Logger.ID() {
+		loggerGroup := s.config.GroupContainer.GroupByLogger(m.Logger)
+		if loggerGroup == nil {
 			fmt.Fprintln(s.writer, "Received a logger with the id ", m.Logger.ID(), "that could not be sorted")
-			continue
 		}
-
-		loggerGroupID := s.config.LoggerGroup[m.Logger.ID()]
 
 		message := m.MessageAsString()
+
+		var slices []string
 		if s.config.ShowLoggerName {
-			message = "[" + m.Logger.Name() + "] " + message
+			// Slice it but with prefix
+			slices = ChunkSlice(message, s.config.CharacterPerPipe-loggerGroup.MaxPrefixSize())
+
+			loggerPrefix := m.Logger.AsPrefix()
+			for index, slice := range slices {
+				slices[index] = loggerPrefix + slice
+			}
+		} else {
+			slices = ChunkSlice(message, s.config.CharacterPerPipe) // slice it normally
 		}
 
-		slices := ChunkSlice(message, s.config.CharacterPerPipe)
-		loggerGroup := finalOutput[loggerGroupID]
+		loggerGroupOutput := finalOutput[loggerGroup.ID()] // Take output till now
 
-		loggerGroup = append(loggerGroup, slices...)
-		finalOutput[loggerGroupID] = loggerGroup
+		loggerGroupOutput = append(loggerGroupOutput, slices...) // append new output
+		finalOutput[loggerGroup.ID()] = loggerGroupOutput        // set output
 	}
 
 	for line := 0; true; line++ {
@@ -98,16 +102,23 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 		output := ""
 		empty := true
 
-		for group := 0; group < s.config.LoggerGroupCount; group++ {
-
+		for group := 0; group < s.config.GroupContainer.GroupCount(); group++ {
 			groupArray := finalOutput[group]
+			groupArraySize := len(groupArray)
 			if group > 0 { // Print new line if we are not first or last message
 				output += PipelineSeparator
 			}
 
-			if line < len(groupArray) {
+			if line < groupArraySize {
 				groupOutput := groupArray[line]
-				output += groupOutput + strings.Repeat(" ", s.config.CharacterPerPipe-bunt.PlainTextLength(groupOutput)) + "\u001b[0m"
+				output += groupOutput
+
+				if s.config.GroupContainer.GroupCount() > 1 { // The last line does not need spaces
+					emptyChars := s.config.CharacterPerPipe - GetPlainTextLength(groupOutput) // The prefix is already in the group output
+					output += strings.Repeat(" ", emptyChars)
+				}
+				output += "\x1b[0m"
+
 				empty = false
 			} else {
 				output += strings.Repeat(" ", s.config.CharacterPerPipe)
@@ -119,9 +130,8 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 				observer(output)
 			}
 
-			fmt.Fprintf(s.writer, "%s", time.Now().Format(TimeFormat)+output)
-			fmt.Fprint(s.writer, "\n")
-			empty = true // Reset for next run
+			fmt.Fprintf(s.writer, "%s\n", time.Now().In(s.config.Location).Format(TimeFormat)+output) // Trim leftover empty spaces
+			empty = true                                                                              // Reset for next run
 		} else {
 			break
 		}
@@ -131,6 +141,12 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 // Observer adds a new observer
 func (s *SplitPipeline) Observer(o PipelineObserver) {
 	s.observers = append(s.observers, o)
+}
+
+// GetPlainTextLength returns the length of the string
+func GetPlainTextLength(s string) int {
+	sequences := bunt.RemoveAllEscapeSequences(s)
+	return utf8.RuneCountInString(strings.Replace(sequences, "\x1b[m", "", -1)) // Remove reset characters too
 }
 
 // ChunkSlice slice a message chunk into smaller chunks
@@ -189,40 +205,26 @@ type SplitPipelineConfig struct {
 	ShowLoggerName   bool
 	Location         *time.Location
 	TerminalWidth    int
-	LoggerGroup      []int
-	LoggerGroupCount int
+	GroupContainer   GroupContainer
 	CharacterPerPipe int
 }
 
 // NewBasicSplitPipelineConfig creates a new split pipeline config using the default terminal length
-func NewBasicSplitPipelineConfig(showLoggerName bool, location time.Location, loggerGroups []int) SplitPipelineConfig {
+func NewBasicSplitPipelineConfig(showLoggerName bool, location *time.Location, groups GroupContainer) SplitPipelineConfig {
 	w := term.GetTerminalWidth()
-	return NewSplitPipelineConfig(showLoggerName, location, w, loggerGroups)
+	return NewSplitPipelineConfig(showLoggerName, location, w, groups)
 }
 
 // NewSplitPipelineConfig creates a new split pipeline config
-func NewSplitPipelineConfig(showLoggerName bool, location time.Location, tWidth int, loggerGroups []int) SplitPipelineConfig {
-	var maxLoggerGroup int
-	for _, group := range loggerGroups {
-		if maxLoggerGroup == 0 || maxLoggerGroup < group {
-			maxLoggerGroup = group
-		}
-	}
-
+func NewSplitPipelineConfig(showLoggerName bool, location *time.Location, tWidth int, groups GroupContainer) SplitPipelineConfig {
 	tWidth -= len(TimeFormat)
-	var groupCount = maxLoggerGroup + 1
-	charactersPerPipe := tWidth/groupCount - (len(PipelineSeparator) * (groupCount - 1))
-
-	if charactersPerPipe < 1 {
-		panic(errors.New("The provided console length is too small -> " + strconv.Itoa(charactersPerPipe)))
-	}
+	charactersPerPipe := tWidth/groups.GroupCount() - (len(PipelineSeparator) * (groups.GroupCount() - 1))
 
 	return SplitPipelineConfig{
 		ShowLoggerName:   showLoggerName,
-		Location:         &location,
+		Location:         location,
 		TerminalWidth:    tWidth,
-		LoggerGroup:      loggerGroups,
-		LoggerGroupCount: groupCount,
+		GroupContainer:   groups,
 		CharacterPerPipe: charactersPerPipe,
 	}
 }

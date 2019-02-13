@@ -61,6 +61,10 @@ type ConsoleLogger struct {
 
 }
 
+func (l *ConsoleLogger) AsPrefix() string {
+	return "[test]"
+}
+
 func (l *ConsoleLogger) ChannelProvider() logger.ChannelProvider {
 	return nil
 }
