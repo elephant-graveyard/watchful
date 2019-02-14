@@ -21,11 +21,17 @@
 package cmd
 
 import (
+	"github.com/homeport/gonvenience/pkg/v1/term"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/spf13/cobra"
 	"os"
 	"time"
+)
+
+var (
+	// TerminalWidth is an argument that one can pass to override the found terminal width
+	TerminalWidth int
 )
 
 // runCmd is the run command definition using cobra
@@ -46,7 +52,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	loggerConfig := logger.NewGroupContainer().NewGroup(cloudFoundryLogger).NewGroup(watchfulLogger)
 
-	loggerClusterConfig := logger.NewBasicSplitPipelineConfig(true, time.Local, loggerConfig)
+	loggerClusterConfig := logger.NewSplitPipelineConfig(true, time.Local, TerminalWidth, loggerConfig)
 
 	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout),
 		loggerChannelProvider, time.Second)
@@ -89,5 +95,6 @@ teardown:
 
 // init adds the runCmd to the watchful root command
 func init() {
+	runCmd.PersistentFlags().IntVarP(&TerminalWidth, "terminalWidth", "w", term.GetTerminalWidth(), "Provides the terminal width")
 	rootCmd.AddCommand(runCmd)
 }
