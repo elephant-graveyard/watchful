@@ -28,6 +28,8 @@ import (
 
 // CloudFoundryCLI is a utility object that can create cli commands for the cloud foundry cli
 //
+// API targets a specific api endpoint within the cf cli
+//
 // CreateOrganization creates a new organization on the cloud foundry instance
 //
 // DeleteOrganization deletes a organization on the cloud foundry instance
@@ -47,11 +49,12 @@ import (
 //
 // Scale will scale the app instance to the provided amount
 type CloudFoundryCLI interface {
+	API(apiEndpoint string) CommandPromise
 	CreateOrganization(name string) CommandPromise
 	DeleteOrganization(name string) CommandPromise
-	CreateSpace(name string) CommandPromise
-	DeleteSpace(name string) CommandPromise
-	Auth(endpoint string, username string, password string) CommandPromise
+	CreateSpace(org string, name string) CommandPromise
+	DeleteSpace(org string, name string) CommandPromise
+	Auth(username string, password string) CommandPromise
 	Target(organization string, space string) CommandPromise
 	Push(path string, name string, instances int) CommandPromise
 	Delete(name string) CommandPromise
@@ -64,29 +67,34 @@ type CloudFoundryCLI interface {
 type BashCloudFoundryCLI struct {
 }
 
+// API targets a specific api endpoint within the cf cli
+func (b *BashCloudFoundryCLI) API(apiEndpoint string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("api %s", apiEndpoint))
+}
+
 // CreateOrganization creates a new organization on the cloud foundry instance
 func (b *BashCloudFoundryCLI) CreateOrganization(name string) CommandPromise {
-	return createCFCommandPromise(fmt.Sprintf("create-org %s" , name))
+	return createCFCommandPromise(fmt.Sprintf("create-org %s", name))
 }
 
 // DeleteOrganization deletes a organization on the cloud foundry instance
 func (b *BashCloudFoundryCLI) DeleteOrganization(name string) CommandPromise {
-	return createCFCommandPromise(fmt.Sprintf("delete-org -f %s" , name))
+	return createCFCommandPromise(fmt.Sprintf("delete-org -f %s", name))
 }
 
 // CreateSpace creates a new space on the cloud foundry instance
-func (b *BashCloudFoundryCLI) CreateSpace(name string) CommandPromise {
-	return createCFCommandPromise(fmt.Sprintf("create-space %s" , name))
+func (b *BashCloudFoundryCLI) CreateSpace(org string, name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("create-space -o %s %s", org, name))
 }
 
 // DeleteSpace deletes a space on the cloud foundry instance
-func (b *BashCloudFoundryCLI) DeleteSpace(name string) CommandPromise {
-	return createCFCommandPromise(fmt.Sprintf("delete-space -f %s" , name))
+func (b *BashCloudFoundryCLI) DeleteSpace(org string, name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("delete-space -o %s -f %s", org, name))
 }
 
 // Auth creates a CommandPromise that will try to authenticate against the cloud foundry instance
-func (b *BashCloudFoundryCLI) Auth(endpoint string, username string, password string) CommandPromise {
-	return createCFCommandPromise(fmt.Sprintf("login -a %s -u %s -p %s", endpoint, username, password))
+func (b *BashCloudFoundryCLI) Auth(username string, password string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("auth %s %s", username, password))
 }
 
 // Target targets the given organization instance
@@ -113,6 +121,11 @@ func (b *BashCloudFoundryCLI) Scale(name string, instances int) CommandPromise {
 // SplitParameterString splits the string into a slice of parameters
 func SplitParameterString(parameter string) []string {
 	return strings.Split(parameter, " ")
+}
+
+// NewBashCloudFoundryCLI creates a new bash based cloud foundry cli
+func NewBashCloudFoundryCLI() *BashCloudFoundryCLI {
+	return &BashCloudFoundryCLI{}
 }
 
 // createCFCommandPromise simply creates a new command promise executing cf plus the parameter list

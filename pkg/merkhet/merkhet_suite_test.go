@@ -114,6 +114,10 @@ func (l *LoggerMock) Name() string {
 	return "LoggerMock"
 }
 
+func (l *LoggerMock) AsPrefix() string {
+	return l.Name()
+}
+
 func (l *LoggerMock) ID() int {
 	return 0
 }
