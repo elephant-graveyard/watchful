@@ -55,16 +55,24 @@ docker run \
 ```
 
 ### Git pre-commit hooks
+
 When working with code, it may not always be the best idea to wait for travis to throw an error if your build failed.
-To automize your development workflow, it may be a good idea to use git pre-commit hooks. 
+To automize your development workflow, it may be a good idea to use git pre-commit hooks.
 
 These little snippets of code are run prior to a commit and can determine whether your commit should be accepted.
-In the case of watchful, a pre-commit hook could look something like this, calling both test and analysis make 
+In the case of `watchful`, a pre-commit hook could look something like this, calling both `test` and `analysis` make
 targets before a commit.
 
 You can install the default pre-commit hook using this command in your watchful root directory:
-```sh 
-cat pre-commit.sh > .git/hooks/pre-commit && chmod u+x .git/hooks/pre-commit
+
+```sh
+cat <<EOS | cat > .git/hooks/pre-commit && chmod a+rx .git/hooks/pre-commit
+#!/usr/bin/env bash
+
+set -euo pipefail
+make analysis test
+
+EOS
 ```
 
 ## License
