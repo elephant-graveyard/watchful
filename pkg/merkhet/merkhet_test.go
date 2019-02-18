@@ -48,7 +48,7 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("should have the correct name", func() {
-			Expect(merkhet.Configuration().Name()).To(BeEquivalentTo("test-config"))
+			Expect(merkhet.Base().Configuration().Name()).To(BeEquivalentTo("test-config"))
 		})
 
 		It("should have installed", func() {
@@ -102,12 +102,12 @@ var _ = Describe("Merkhet code test", func() {
 				e := merkhet.Execute()
 				relay <- ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
 					if e == nil {
-						merkhet.RecordSuccessfulRun()
+						merkhet.Base().RecordSuccessfulRun()
 					} else {
-						merkhet.RecordFailedRun()
+						merkhet.Base().RecordFailedRun()
 					}
 
-					c <- merkhet.BuildResult()
+					c <- merkhet.Base().NewResultSet()
 				})
 			}))
 
@@ -118,22 +118,22 @@ var _ = Describe("Merkhet code test", func() {
 
 		It("should pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().Valid()).To(BeTrue())
+			Expect(merkhet.Base().NewResultSet().Valid()).To(BeTrue())
 		})
 
 		It("should not pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 1), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().Valid()).To(BeFalse())
+			Expect(merkhet.Base().NewResultSet().Valid()).To(BeFalse())
 		})
 
 		It("should pass the merkhet test using a percentage config", func() {
 			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.2), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().Valid()).To(BeTrue())
+			Expect(merkhet.Base().NewResultSet().Valid()).To(BeTrue())
 		})
 
 		It("should not pass the merkhet test using a percentage config", func() {
 			merkhet = NewMerkhetMock(NewPercentageConfiguration("test-config", 0.1), 10, 2, true, callback)
-			Expect(merkhet.BuildResult().Valid()).To(BeFalse())
+			Expect(merkhet.Base().NewResultSet().Valid()).To(BeFalse())
 		})
 	})
 })
