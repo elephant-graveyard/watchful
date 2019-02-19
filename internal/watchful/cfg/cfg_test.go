@@ -45,7 +45,7 @@ var _ = Describe("Configuration testing", func() {
 		})
 
 		It("Should read the config from a string yaml", func() {
-			var body string = `---
+			var body = `---
 cf:
   domain: string-yaml-test.com
   api-endpoint: a.test.com

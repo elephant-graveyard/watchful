@@ -29,12 +29,15 @@ import (
 //
 // StartBeating starts the heartbeat
 //
+// IsBeating returns if the heartbeat is currently beating
+//
 // StopBeating stops the heartbeat
 //
 // Worker returns the worker instance this heartbeat is working on
 type Heartbeat interface {
 	StartBeating()
 	StopBeating()
+	IsBeating() bool
 	Worker() Worker
 }
 
@@ -49,7 +52,9 @@ type TickedHeartbeat struct {
 
 // StartBeating starts the heartbeats go routine
 func (t *TickedHeartbeat) StartBeating() {
-	if t.Consumer == nil{
+	t.closure = make(chan os.Signal)
+
+	if t.Consumer == nil {
 		return
 	}
 
@@ -58,12 +63,17 @@ func (t *TickedHeartbeat) StartBeating() {
 		for {
 			select {
 			case <-t.Ticker.C:
-				t.Consumer.Consume(t.Worker().Merkhet() , t.Worker().ControllerChannel())
+				t.Consumer.Consume(t.Worker().Merkhet(), t.Worker().ControllerChannel())
 			case <-t.closure:
 				return
 			}
 		}
 	}()
+}
+
+// IsBeating returns if the heartbeat is currently beating
+func (t *TickedHeartbeat) IsBeating() bool {
+	return t.closure != nil
 }
 
 // StopBeating stops the heartbeats go routine
@@ -76,6 +86,7 @@ func (t *TickedHeartbeat) StopBeating() {
 
 	t.closure <- os.Kill
 	close(t.closure)
+	t.closure = nil
 }
 
 // Worker returns the wrapped worker
@@ -83,13 +94,11 @@ func (t *TickedHeartbeat) Worker() Worker {
 	return t.WrappedWorker
 }
 
-
 // NewTickedHeartbeat creates a new instance of the TickedHeartbeat struct
 func NewTickedHeartbeat(worker Worker, duration time.Duration, consumer Consumer) *TickedHeartbeat {
 	return &TickedHeartbeat{
 		WrappedWorker: worker,
 		Consumer:      consumer,
 		Interval:      duration,
-		closure:       make(chan os.Signal),
 	}
 }

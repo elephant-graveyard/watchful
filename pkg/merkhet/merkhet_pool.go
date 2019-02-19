@@ -24,6 +24,9 @@ import (
 	"time"
 )
 
+// HeartbeatConsumer consumes a single heartbeat
+type HeartbeatConsumer func(heartbeat Heartbeat)
+
 // Pool contains a map of registered merkhets as well as manages them
 //
 // StartWorker pushes a new Merkhet instance to the Pool.
@@ -35,12 +38,16 @@ import (
 //
 // ForEach executes the provided function for each Merkhet instance currently managed by the Pool
 //
+// ForEachHeartbeat executes something for each heartbeat instance
+//
 // Shutdown shuts the pool and it's heartbeats down
 type Pool interface {
-	StartWorker(m Merkhet , duration time.Duration , heartbeat Consumer)
+	StartWorker(m Merkhet, duration time.Duration, heartbeat Consumer)
 	StartHeartbeats()
 	Size() uint
+	BeatingHearts() (heartbeats []Heartbeat)
 	ForEach(consumer Consumer)
+	ForEachHeartbeat(consumer HeartbeatConsumer)
 	Shutdown()
 }
 
@@ -50,7 +57,7 @@ type SimplePool struct {
 }
 
 // StartWorker pushes a new merkhet instance into the Pool and starts the worker
-func (s *SimplePool) StartWorker(m Merkhet , duration time.Duration , heartbeat Consumer) {
+func (s *SimplePool) StartWorker(m Merkhet, duration time.Duration, heartbeat Consumer) {
 	worker := NewMerkhetWorker(m)
 	go worker.StartWorker() // Start the worker instance in a different go routine
 
@@ -70,10 +77,28 @@ func (s *SimplePool) Size() uint {
 	return uint(len(s.heartbeats))
 }
 
+// BeatingHearts returns the currently beating hearts
+func (s *SimplePool) BeatingHearts() (heartbeats []Heartbeat) {
+	result := make([]Heartbeat, 0)
+	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
+		if heartbeat.IsBeating() {
+			result = append(result, heartbeat)
+		}
+	})
+	return result
+}
+
 // ForEach executes the provided function for each Merkhet instance currently managed by the pool
 func (s *SimplePool) ForEach(consumer Consumer) {
+	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
+		heartbeat.Worker().ControllerChannel() <- consumer
+	})
+}
+
+// ForEachHeartbeat executes something for each heartbeat instance
+func (s *SimplePool) ForEachHeartbeat(consumer HeartbeatConsumer) {
 	for _, beat := range s.heartbeats {
-		beat.Worker().ControllerChannel() <- consumer
+		consumer(beat)
 	}
 }
 
