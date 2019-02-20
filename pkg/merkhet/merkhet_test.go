@@ -43,7 +43,7 @@ var _ = Describe("Merkhet code test", func() {
 		})
 
 		It("should have 1 merkhet", func() {
-			pool.StartWorker(merkhet)
+			pool.StartWorker(merkhet, time.Second, nil)
 			Expect(pool.Size()).To(BeNumerically("==", 1))
 		})
 
@@ -59,7 +59,7 @@ var _ = Describe("Merkhet code test", func() {
 				},
 			})
 
-			pool.StartWorker(merkhet)
+			pool.StartWorker(merkhet, time.Second, nil)
 
 			pool.ForEach(ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
 				merkhet.Install()
@@ -76,7 +76,7 @@ var _ = Describe("Merkhet code test", func() {
 				},
 			})
 
-			pool.StartWorker(merkhet)
+			pool.StartWorker(merkhet, time.Second, nil)
 
 			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) {
 				merkhet.Execute()
@@ -96,7 +96,7 @@ var _ = Describe("Merkhet code test", func() {
 			})
 
 			c := make(chan Result)
-			pool.StartWorker(merkhet)
+			pool.StartWorker(merkhet, time.Second, nil)
 
 			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) {
 				e := merkhet.Execute()
@@ -115,6 +115,20 @@ var _ = Describe("Merkhet code test", func() {
 			Expect(result.SuccessfulRuns()).To(BeEquivalentTo(1))
 			close(done)
 		}, 5*1000)
+
+		It("should beat correctly", func(done Done) {
+			pool.StartWorker(merkhet, 10*time.Millisecond, ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) {
+				merkhet.RecordSuccessfulRun()
+			}))
+			pool.StartHeartbeats()
+			time.Sleep(time.Second)
+			Expect(len(pool.BeatingHearts())).To(BeEquivalentTo(1))
+			pool.Shutdown()
+			Expect(len(pool.BeatingHearts())).To(BeEquivalentTo(0))
+
+			Expect(merkhet.BuildResult().SuccessfulRuns()).To(BeNumerically("~", 100, 2))
+			close(done)
+		}, 10*1000)
 
 		It("should pass the merkhet test using a flat config", func() {
 			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 10, 2, true, callback)

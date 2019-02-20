@@ -20,52 +20,93 @@
 
 package merkhet
 
+import (
+	"time"
+)
+
+// HeartbeatConsumer consumes a single heartbeat
+type HeartbeatConsumer func(heartbeat Heartbeat)
+
 // Pool contains a map of registered merkhets as well as manages them
 //
 // StartWorker pushes a new Merkhet instance to the Pool.
 // This method will also instantly start the worker sub routine
 //
+// StartHeartbeats starts all the heartbeats registered with the running workers
+//
 // Size returns the current size of the Pool
 //
 // ForEach executes the provided function for each Merkhet instance currently managed by the Pool
 //
-// Shutdown shuts the pool and it's workers down
+// ForEachHeartbeat executes something for each heartbeat instance
+//
+// Shutdown shuts the pool and it's heartbeats down
 type Pool interface {
-	StartWorker(merkhet Merkhet)
+	StartWorker(m Merkhet, duration time.Duration, heartbeat Consumer)
+	StartHeartbeats()
 	Size() uint
+	BeatingHearts() (heartbeats []Heartbeat)
 	ForEach(consumer Consumer)
+	ForEachHeartbeat(consumer HeartbeatConsumer)
 	Shutdown()
 }
 
 // SimplePool is a basic implementation of the MerkhetPool interface
 type SimplePool struct {
-	workers []Worker
+	heartbeats []Heartbeat
 }
 
-// StartWorker pushes a new merkhet instance into the Pool
-func (s *SimplePool) StartWorker(m Merkhet) {
+// StartWorker pushes a new merkhet instance into the Pool and starts the worker
+func (s *SimplePool) StartWorker(m Merkhet, duration time.Duration, heartbeat Consumer) {
 	worker := NewMerkhetWorker(m)
 	go worker.StartWorker() // Start the worker instance in a different go routine
 
-	s.workers = append(s.workers, worker)
+	beat := NewTickedHeartbeat(worker, duration, heartbeat)
+	s.heartbeats = append(s.heartbeats, beat)
+}
+
+// StartHeartbeats starts all the heartbeats registered with the running workers
+func (s *SimplePool) StartHeartbeats() {
+	for _, beat := range s.heartbeats {
+		beat.StartBeating()
+	}
 }
 
 // Size returns the size of the pool
 func (s *SimplePool) Size() uint {
-	return uint(len(s.workers))
+	return uint(len(s.heartbeats))
+}
+
+// BeatingHearts returns the currently beating hearts
+func (s *SimplePool) BeatingHearts() (heartbeats []Heartbeat) {
+	result := make([]Heartbeat, 0)
+	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
+		if heartbeat.IsBeating() {
+			result = append(result, heartbeat)
+		}
+	})
+	return result
 }
 
 // ForEach executes the provided function for each Merkhet instance currently managed by the pool
 func (s *SimplePool) ForEach(consumer Consumer) {
-	for _, worker := range s.workers {
-		worker.ControllerChannel() <- consumer
+	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
+		heartbeat.Worker().ControllerChannel() <- consumer
+	})
+}
+
+// ForEachHeartbeat executes something for each heartbeat instance
+func (s *SimplePool) ForEachHeartbeat(consumer HeartbeatConsumer) {
+	for _, beat := range s.heartbeats {
+		consumer(beat)
 	}
 }
 
-// Shutdown shuts the pool and it's workers down
+// Shutdown shuts the pool and it's heartbeats down
 func (s *SimplePool) Shutdown() {
-	for _, worker := range s.workers {
-		close(worker.ControllerChannel())
+	for _, beat := range s.heartbeats {
+		close(beat.Worker().ControllerChannel())
+		beat.StopBeating()
 	}
 }
 

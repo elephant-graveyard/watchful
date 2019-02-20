@@ -40,8 +40,10 @@ type CloudFoundryConfig struct {
 
 // TaskConfiguration is the configuration for a simply task that is executed against the cloud foundry instance
 type TaskConfiguration struct {
-	Executable string   `yaml:"cmd"`
-	Parameters []string `yaml:"args"`
+	Executable       string   `yaml:"cmd"`
+	Parameters       []string `yaml:"args"`
+	MerkhetWhitelist []string `yaml:"merkhet-whitelist"`
+	MerkhetBlacklist []string `yaml:"merkhet-blacklist"`
 }
 
 // MerkhetConfiguration is the configuration of one merkhet instance running

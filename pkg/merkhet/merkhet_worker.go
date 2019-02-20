@@ -29,7 +29,7 @@ type ControllerChannel chan Consumer
 //
 // Merkhet returns the merkhet instance the Worker wraps
 //
-// StartWorker starts the workers listening logic.
+// StartHeartbeat starts the heartbeats listening logic.
 // This has to be called in a different go routine, or it will block the calling routine
 type Worker interface {
 	ControllerChannel() ControllerChannel
@@ -43,7 +43,7 @@ type SimpleWorkerTask struct {
 	master  ControllerChannel
 }
 
-//ControllerChannel returns the controller channel this worker listens on
+// ControllerChannel returns the controller channel this worker listens on
 func (s *SimpleWorkerTask) ControllerChannel() ControllerChannel {
 	return s.master
 }
@@ -53,7 +53,7 @@ func (s *SimpleWorkerTask) Merkhet() Merkhet {
 	return s.merkhet
 }
 
-// StartWorker starts the workers listening logic.
+// StartWorker starts the heartbeats listening logic.
 // This has to be called in a different go routine, or it will block the calling routine
 func (s *SimpleWorkerTask) StartWorker() {
 	for request := range s.ControllerChannel() {
