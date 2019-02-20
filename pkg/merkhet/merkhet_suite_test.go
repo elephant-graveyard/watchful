@@ -42,20 +42,13 @@ type MerkhetCallback struct {
 }
 
 type MerkhetMock struct {
-	Config         Configuration
-	LoggerMock     logger.Logger
-	FailedRuns     int
-	SuccessfulRuns int
-	WillExecute    bool
-	Callback       *MerkhetCallback
+	BaseReference Base
+	WillExecute   bool
+	Callback      *MerkhetCallback
 }
 
-func (s *MerkhetMock) RecordSuccessfulRun() {
-	s.SuccessfulRuns = s.SuccessfulRuns + 1
-}
-
-func (s *MerkhetMock) RecordFailedRun() {
-	s.FailedRuns = s.FailedRuns + 1
+func (s *MerkhetMock) Base() Base {
+	return s.BaseReference
 }
 
 func (s *MerkhetMock) Install() error {
@@ -79,26 +72,11 @@ func (s *MerkhetMock) Execute() error {
 	return nil
 }
 
-func (s *MerkhetMock) BuildResult() Result {
-	return NewMerkhetResult(s.SuccessfulRuns, s.FailedRuns, s.Configuration().ValidRun(s.SuccessfulRuns, s.FailedRuns))
-}
-
-func (s *MerkhetMock) Configuration() Configuration {
-	return s.Config
-}
-
-func (s *MerkhetMock) Logger() logger.Logger {
-	return s.LoggerMock
-}
-
 func NewMerkhetMock(config Configuration, totalRuns int, fails int, canExecute bool, callback *MerkhetCallback) *MerkhetMock {
 	return &MerkhetMock{
-		SuccessfulRuns: totalRuns,
-		FailedRuns:     fails,
-		WillExecute:    canExecute,
-		Config:         config,
-		LoggerMock:     NewLoggerMock(),
-		Callback:       callback,
+		BaseReference:NewSetSimpleBase(NewLoggerMock() , config , totalRuns - fails , fails),
+		WillExecute: canExecute,
+		Callback:    callback,
 	}
 }
 
@@ -112,6 +90,10 @@ func (l *LoggerMock) ReportingOn(level logger.LogLevel) logger.ReportingWriter {
 
 func (l *LoggerMock) Name() string {
 	return "LoggerMock"
+}
+
+func (l *LoggerMock) AsPrefix() string {
+	return l.Name()
 }
 
 func (l *LoggerMock) ID() int {

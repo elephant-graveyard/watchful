@@ -20,10 +20,6 @@
 
 package merkhet
 
-import (
-	"github.com/homeport/watchful/pkg/logger"
-)
-
 // Merkhet defines a runnable measurement task that can be executed during the Cloud Foundry maintenance
 //
 // Install installs the merkhet instance. This method call will be used to setup necessary dependencies of the merkhet
@@ -45,12 +41,7 @@ type Merkhet interface {
 	Install() error
 	PostConnect() error
 	Execute() error
-	BuildResult() Result
-	Configuration() Configuration
-	Logger() logger.Logger
-
-	RecordSuccessfulRun()
-	RecordFailedRun()
+	Base() Base
 }
 
 // Configuration contains the passed configuration values for a Merkhet instance
