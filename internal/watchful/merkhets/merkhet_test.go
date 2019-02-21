@@ -53,9 +53,8 @@ var _ = Describe("the implemented merkhets should function correctly" , func() {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL + "/info", MerkhetBase)
+		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , "")
 		Expect(curlMerkhet.Install()).To(BeNil())
-		Expect(curlMerkhet.PostConnect()).To(BeNil())
 		Expect(curlMerkhet.Execute()).To(BeNil())
 	})
 
@@ -64,9 +63,8 @@ var _ = Describe("the implemented merkhets should function correctly" , func() {
 			time.Sleep(1 * time.Second)
 		})
 
-		curlMerkhet := NewCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , &http.Client{} , time.Millisecond)
+		curlMerkhet := NewCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , &http.Client{} , time.Millisecond , "")
 		Expect(curlMerkhet.Install()).To(BeNil())
-		Expect(curlMerkhet.PostConnect()).To(BeNil())
 		Expect(curlMerkhet.Execute()).To(Not(BeNil()))
 		close(done)
 	} , 5 * 1000)
@@ -76,9 +74,8 @@ var _ = Describe("the implemented merkhets should function correctly" , func() {
 			w.WriteHeader(http.StatusForbidden)
 		})
 
-		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL + "/info", MerkhetBase)
+		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , "")
 		Expect(curlMerkhet.Install()).To(BeNil())
-		Expect(curlMerkhet.PostConnect()).To(BeNil())
 		Expect(curlMerkhet.Execute()).To(Not(BeNil()))
 		close(done)
 	})

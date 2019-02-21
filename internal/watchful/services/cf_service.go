@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package executable
+package services
 
 import (
 	"github.com/homeport/watchful/internal/watchful/cfg"
@@ -27,20 +27,20 @@ import (
 	"os/exec"
 )
 
-// CloudFoundryExecutable is an executable that executes a cloud foundry task
-type CloudFoundryExecutable struct {
+// CloudFoundryService is an services that executes a cloud foundry task
+type CloudFoundryService struct {
 	Tasks              []cfg.TaskConfiguration
 	CloudFoundryLogger logger.Logger
 }
 
-// NewCloudFoundryExecutable creates a new cloud foundry executor service
-func NewCloudFoundryExecutable(tasks []cfg.TaskConfiguration, cloudFoundryLogger logger.Logger) *CloudFoundryExecutable {
-	return &CloudFoundryExecutable{Tasks: tasks, CloudFoundryLogger: cloudFoundryLogger}
+// NewCloudFoundryService creates a new cloud foundry executor service
+func NewCloudFoundryService(tasks []cfg.TaskConfiguration, cloudFoundryLogger logger.Logger) *CloudFoundryService {
+	return &CloudFoundryService{Tasks: tasks, CloudFoundryLogger: cloudFoundryLogger}
 }
 
-// Next returns if the cloud foundry executable has a next task to run
+// Next returns if the cloud foundry services has a next task to run
 // It will also return the next task it would execute
-func (e *CloudFoundryExecutable) Next() (configuration *cfg.TaskConfiguration) {
+func (e *CloudFoundryService) Next() (configuration *cfg.TaskConfiguration) {
 	if len(e.Tasks) > 0 {
 		return &e.Tasks[0]
 	}
@@ -48,7 +48,7 @@ func (e *CloudFoundryExecutable) Next() (configuration *cfg.TaskConfiguration) {
 }
 
 // Execute executes the current task
-func (e *CloudFoundryExecutable) Execute() error {
+func (e *CloudFoundryService) Execute() error {
 	config := e.Next()
 
 	commandPromise := cfw.NewSimpleCommandPromise(exec.Command(config.Executable, config.Parameters...))
@@ -58,8 +58,8 @@ func (e *CloudFoundryExecutable) Execute() error {
 	return commandPromise.Sync()
 }
 
-// Pop the first cloud foundry executable
-func (e *CloudFoundryExecutable) Pop() *cfg.TaskConfiguration {
+// Pop the first cloud foundry services
+func (e *CloudFoundryService) Pop() *cfg.TaskConfiguration {
 	if len(e.Tasks) > 0 {
 		top := e.Tasks[0]
 		e.Tasks = e.Tasks[1:]

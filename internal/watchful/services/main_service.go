@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package executable
+package services
 
 import (
 	"fmt"
@@ -26,27 +26,39 @@ import (
 	"github.com/homeport/watchful/internal/watchful/cfg"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
+	"github.com/homeport/watchful/pkg/merkhet"
 	"github.com/pkg/errors"
 	"os"
 	"os/signal"
 	"time"
 )
 
-// Executable is an interface that defines an object that is capable of being executed
+var (
+	// ExportPath is the path assets are exported to
+	ExportPath = "./temp"
+)
+
+// Service is an interface that defines an object that is capable of being executed
 //
-// Execute executes the executable
-type Executable interface {
+// Execute executes the services
+type Service interface {
 	Execute() error
 }
 
-// MainExecutable defines the main executable service of watchful
-type MainExecutable struct {
-	TerminalWidth int
-	ConfigContent string
+// Cleanable defines objects that need cleanup
+type Cleanable interface {
+	Cleanup()
+}
+
+// MainService defines the main services service of watchful
+type MainService struct {
+	TerminalWidth           int
+	ConfigContent           string
+	PushedAppSampleLanguage string
 }
 
 // Execute executes watchful with all outside parameters
-func (e *MainExecutable) Execute() error {
+func (e *MainService) Execute() error {
 	config := &cfg.WatchfulConfig{}
 	if len(e.ConfigContent) > 0 { // Load config
 		if err := cfg.ParseFromString(e.ConfigContent, config); err != nil {
@@ -64,10 +76,11 @@ func (e *MainExecutable) Execute() error {
 	cloudFoundryLogger := loggerFactory.NewChanneledLogger("cf-cli-worker") // Create task logger
 	taskLogger := loggerFactory.NewChanneledLogger("task-worker")           // Create task logger
 	watchfulLogger := loggerFactory.NewChanneledLogger("watchful")          // Create watchful logger
+	assetLogger := loggerFactory.NewChanneledLogger("asset-service")        // Create asset logger
 
 	loggerConfig := logger.NewGroupContainer().
 		NewGroup(cloudFoundryLogger, taskLogger).
-		NewGroup(watchfulLogger)
+		NewGroup(watchfulLogger, assetLogger)
 
 	location, er := time.LoadLocation(config.LoggerConfiguration.TimeLocation) // Load the configured timezone
 	if er != nil {
@@ -79,6 +92,11 @@ func (e *MainExecutable) Execute() error {
 		loggerChannelProvider, time.Second)
 	go loggerCluster.StartListening() // Start cluster
 
+	assetService := NewAssetService(e.PushedAppSampleLanguage, assetLogger, ExportPath)
+	if err := assetService.Execute(); err != nil {
+		return err
+	}
+
 	watchfulLogger.WriteString(logger.Info, fmt.Sprintf("Using time location %s", location.String()))
 
 	shutdownNotifier := make(chan os.Signal, 1) // We want to be able to kill it in the same routine
@@ -87,23 +105,66 @@ func (e *MainExecutable) Execute() error {
 
 	worker := cfw.NewCloudFoundryWorker(cloudFoundryLogger, cfw.NewBashCloudFoundryCLI())
 
+	merkhetCore := NewMerkhetService(config, loggerFactory, loggerConfig.GroupByLogger(watchfulLogger), ExportPath)
+	if err := merkhetCore.Execute(); err != nil {
+		return err
+	}
+
+	watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets}"))
+	installError := merkhetCore.Pool.ForEach(merkhet.ConsumeSync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) error {
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Installing Aqua{%s}\n...", m.Base().Configuration().Name()))
+		if err := m.Install(); err != nil {
+			return err
+		}
+		return nil
+	}))
+	if installError != nil {
+		return errors.Wrap(installError, "could not install merkhets")
+	}
+
 	go func() {
-		NewSetupExecutable(config.CloudFoundryConfig, watchfulLogger, taskLogger, worker).Execute() // Run setup logic
-		taskWorker := NewCloudFoundryExecutable(config.TaskConfigurations, cloudFoundryLogger)
+		NewSetupService(config.CloudFoundryConfig, watchfulLogger, taskLogger, worker).Execute() // Run setup logic
+		taskWorker := NewCloudFoundryService(config.TaskConfigurations, cloudFoundryLogger)
+
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-connecting merkhets}"))
+		postConnectError := merkhetCore.Pool.ForEach(merkhet.ConsumeSync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) error { // post connect merkhets
+			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Post-Connecting Aqua{%s}\n...", m.Base().Configuration().Name()))
+			if err := m.PostConnect(); err != nil {
+				return errors.Wrap(err, "could not post connect "+m.Base().Configuration().Name())
+			}
+			return nil
+		}))
+		if postConnectError != nil { // catch post connect errors
+			shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(postConnectError, fmt.Sprintf("Faliure in post-connected"))}
+			return
+		}
 
 		taskIndex := 0
-		for currentTaskConfig := taskWorker.Next(); currentTaskConfig != nil; currentTaskConfig = taskWorker.Next() {
+		for currentTaskConfig := taskWorker.Next(); currentTaskConfig != nil; currentTaskConfig = taskWorker.Next() { // Loop over all tasks
 			taskIndex++
 
-			watchfulLogger.WriteString(logger.Info, fmt.Sprintf("Executing task #%d", taskIndex))
+			if len(currentTaskConfig.MerkhetWhitelist) > 0 {
+				merkhetCore.ApplyWhitelist(currentTaskConfig.MerkhetWhitelist)
+			} else if len(currentTaskConfig.MerkhetBlacklist) > 0 {
+				merkhetCore.ApplyBlacklist(currentTaskConfig.MerkhetBlacklist)
+			} else {
+				merkhetCore.Pool.StartHeartbeats()
+			}
+
+			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Executing task} #%d", taskIndex))
+			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Using merkhets: }")) // Print currently running merkhets
+			for _, beat := range merkhetCore.Pool.BeatingHearts() {
+				watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Gray{ - } Aqua{%s}", beat.Worker().Merkhet().Base().Configuration().Name()))
+			}
+
 			if err := taskWorker.Execute(); err != nil {
 				taskLogger.WriteString(logger.Error, err.Error())
-				watchfulLogger.WriteString(logger.Error, bunt.Sprintf("Red{Task #%d failed}" , taskIndex))
-				shutdownNotifier <- &ErrorSignal{InnerError:errors.Wrap(err , fmt.Sprintf("Faliure in task #%d" , taskIndex))} // Shutdown with the given error
+				watchfulLogger.WriteString(logger.Error, bunt.Sprintf("Red{Task #%d failed}", taskIndex))
+				shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, fmt.Sprintf("Faliure in task #%d", taskIndex))} // Shutdown with the given error
 				return
 			}
 
-			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("SpringGreen{Finished task #%d}", taskIndex))
+			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("DarkGreen{Finished task #%d}", taskIndex))
 			_ = taskWorker.Pop()
 		}
 
@@ -111,7 +172,12 @@ func (e *MainExecutable) Execute() error {
 	}()
 
 	output := <-shutdownNotifier
-	NewTeardownExecutable(watchfulLogger, worker).Execute()
+	merkhetCore.Pool.Shutdown()
+	watchfulLogger.WriteString(logger.Info, bunt.Sprintf("DarkGreen{Shutdown merkhets}")) // stop merkhets
+
+	NewTeardownService(watchfulLogger, worker).Execute() // Teardown cf env
+
+	assetService.Cleanup() // Cleans the asset service
 
 	watchfulLogger.WriteString(logger.Info, "Done ! Shutting down..")
 	loggerChannelProvider.Close()
@@ -121,7 +187,7 @@ func (e *MainExecutable) Execute() error {
 	case *ErrorSignal:
 		return signalType.Error()
 	default:
-		return fmt.Errorf("received external system signal: %s" , signalType.String())
+		return fmt.Errorf("received external system signal: %s", signalType.String())
 	}
 }
 

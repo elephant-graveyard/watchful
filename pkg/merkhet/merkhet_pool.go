@@ -25,7 +25,7 @@ import (
 )
 
 // HeartbeatConsumer consumes a single heartbeat
-type HeartbeatConsumer func(heartbeat Heartbeat)
+type HeartbeatConsumer func(heartbeat Heartbeat) (err error)
 
 // Pool contains a map of registered merkhets as well as manages them
 //
@@ -46,8 +46,8 @@ type Pool interface {
 	StartHeartbeats()
 	Size() uint
 	BeatingHearts() (heartbeats []Heartbeat)
-	ForEach(consumer Consumer)
-	ForEachHeartbeat(consumer HeartbeatConsumer)
+	ForEach(consumer Consumer) (err error)
+	ForEachHeartbeat(consumer HeartbeatConsumer) (err error)
 	Shutdown()
 }
 
@@ -68,7 +68,9 @@ func (s *SimplePool) StartWorker(m Merkhet, duration time.Duration, heartbeat Co
 // StartHeartbeats starts all the heartbeats registered with the running workers
 func (s *SimplePool) StartHeartbeats() {
 	for _, beat := range s.heartbeats {
-		beat.StartBeating()
+		if !beat.IsBeating() {
+			beat.StartBeating()
+		}
 	}
 }
 
@@ -80,32 +82,37 @@ func (s *SimplePool) Size() uint {
 // BeatingHearts returns the currently beating hearts
 func (s *SimplePool) BeatingHearts() (heartbeats []Heartbeat) {
 	result := make([]Heartbeat, 0)
-	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
+	_ = s.ForEachHeartbeat(func(heartbeat Heartbeat) (err error) {
 		if heartbeat.IsBeating() {
 			result = append(result, heartbeat)
 		}
+		return nil
 	})
 	return result
 }
 
 // ForEach executes the provided function for each Merkhet instance currently managed by the pool
-func (s *SimplePool) ForEach(consumer Consumer) {
-	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
-		heartbeat.Worker().ControllerChannel() <- consumer
+func (s *SimplePool) ForEach(consumer Consumer) (err error) {
+	return s.ForEachHeartbeat(func(heartbeat Heartbeat) (err error) {
+		return consumer.Consume(heartbeat.Worker().Merkhet(), heartbeat.Worker().ControllerChannel())
 	})
 }
 
 // ForEachHeartbeat executes something for each heartbeat instance
-func (s *SimplePool) ForEachHeartbeat(consumer HeartbeatConsumer) {
+func (s *SimplePool) ForEachHeartbeat(consumer HeartbeatConsumer) (err error) {
 	for _, beat := range s.heartbeats {
-		consumer(beat)
+		if err := consumer(beat); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // Shutdown shuts the pool and it's heartbeats down
 func (s *SimplePool) Shutdown() {
 	for _, beat := range s.heartbeats {
-		close(beat.Worker().ControllerChannel())
+		beat.Worker().ControllerChannel().WaitGroup.Wait() // wait for all currently running tasks to be done
+		close(beat.Worker().ControllerChannel().C)
 		beat.StopBeating()
 	}
 }

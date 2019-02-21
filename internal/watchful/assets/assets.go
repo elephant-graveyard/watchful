@@ -20,10 +20,19 @@
 
 package assets
 
-import "github.com/homeport/pina-golada/pkg/files"
+import (
+	"fmt"
+	"github.com/homeport/pina-golada/pkg/files"
+	"strings"
+)
 
-// Provider is the provider instance to access pina-goladas asset framework
-var Provider ProviderInterface
+var (
+	// Provider is the provider instance to access pina-goladas asset framework
+	Provider ProviderInterface
+
+	// LanguageMap represents a map of language to asset provider
+	LanguageMap map[string]func() (directory files.Directory, e error)
+)
 
 // ProviderInterface is the interface that provides the asset file
 // @pgl(package=assets&injector=Provider)
@@ -31,4 +40,22 @@ type ProviderInterface interface {
 	// GetGoSampleApp returns the directory containing the go sample app
 	// @pgl(asset=/assets/go-cf-sample/&compressor=tar)
 	GetGoSampleApp() (directory files.Directory, e error)
+}
+
+// SampleApp returns the sample app stored for the given language
+func SampleApp(language string) (directory files.Directory, e error) {
+	provider := LanguageMap[strings.ToLower(language)]
+	if provider != nil {
+		return provider()
+	}
+	return nil , fmt.Errorf("could not find provider method for language %s" , language)
+}
+
+// init initializes the languageMap
+func init() {
+	LanguageMap = make(map[string]func() (directory files.Directory, e error))
+
+	LanguageMap["go"] = func() (directory files.Directory, e error) {
+		return Provider.GetGoSampleApp()
+	}
 }

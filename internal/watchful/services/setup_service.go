@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package executable
+package services
 
 import (
 	"github.com/homeport/watchful/internal/watchful/cfg"
@@ -26,21 +26,21 @@ import (
 	"github.com/homeport/watchful/pkg/logger"
 )
 
-// SetupExecutable is a service to setup a new cloud foundry
-type SetupExecutable struct {
+// SetupService is a service to setup a new cloud foundry
+type SetupService struct {
 	Config             cfg.CloudFoundryConfig
 	WatchfulLogger     logger.Logger
 	CloudFoundryLogger logger.Logger
 	Worker             cfw.CloudFoundryWorker
 }
 
-// NewSetupExecutable creates a new instance
-func NewSetupExecutable(config cfg.CloudFoundryConfig, watchfulLogger logger.Logger, cloudFoundryLogger logger.Logger, worker cfw.CloudFoundryWorker) *SetupExecutable {
-	return &SetupExecutable{Config: config, WatchfulLogger: watchfulLogger, CloudFoundryLogger: cloudFoundryLogger, Worker: worker}
+// NewSetupService creates a new instance
+func NewSetupService(config cfg.CloudFoundryConfig, watchfulLogger logger.Logger, cloudFoundryLogger logger.Logger, worker cfw.CloudFoundryWorker) *SetupService {
+	return &SetupService{Config: config, WatchfulLogger: watchfulLogger, CloudFoundryLogger: cloudFoundryLogger, Worker: worker}
 }
 
 // Execute sets up the cloud foundry instance
-func (e *SetupExecutable) Execute() error {
+func (e *SetupService) Execute() error {
 	e.WatchfulLogger.WriteString(logger.Info, "Targeting API Endpoint")
 	if err := e.Worker.API(e.Config.APIEndPoint, !e.Config.SkipSSLValidation); err != nil {
 		e.WatchfulLogger.WriteString(logger.Error, "Could not target API endpoint "+err.Error())

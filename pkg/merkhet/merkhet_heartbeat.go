@@ -60,6 +60,8 @@ func (t *TickedHeartbeat) StartBeating() {
 
 	t.Ticker = time.NewTicker(t.Interval)
 	go func() {
+		t.Consumer.Consume(t.Worker().Merkhet(), t.Worker().ControllerChannel())
+
 		for {
 			select {
 			case <-t.Ticker.C:

@@ -166,6 +166,7 @@ func (g *LinkedSlicedGroup) updateMaxPrefix() {
 			maxPrefix = prefixLength
 		}
 	}
+	g.MaxPrefixLength = maxPrefix
 }
 
 // NewSlicedGroup creates a new group instance containing the loggers

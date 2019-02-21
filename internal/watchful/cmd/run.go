@@ -23,7 +23,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/homeport/gonvenience/pkg/v1/term"
-	"github.com/homeport/watchful/internal/watchful/executable"
+	"github.com/homeport/watchful/internal/watchful/services"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -34,6 +34,9 @@ var (
 
 	// ConfigContent represents the string content of the config file
 	ConfigContent string
+
+	// PushedAppSampleLanguage is the language in which the pushed sample app should be written
+	PushedAppSampleLanguage string
 )
 
 // runCmd is the run command definition using cobra
@@ -46,13 +49,14 @@ var runCmd = &cobra.Command{
 
 // run is the method called when someone uses the watchful run command
 func run(cmd *cobra.Command, args []string) {
-	e := executable.MainExecutable{
+	e := services.MainService{
 		TerminalWidth: TerminalWidth,
 		ConfigContent: ConfigContent,
+		PushedAppSampleLanguage: PushedAppSampleLanguage,
 	}
 
 	if err := e.Execute(); err != nil {
-		fmt.Println(fmt.Sprintf("watchful failed: %s" , err.Error()))
+		fmt.Println(fmt.Sprintf("watchful failed: %s", err.Error()))
 		os.Exit(1)
 	}
 
@@ -63,5 +67,7 @@ func run(cmd *cobra.Command, args []string) {
 func init() {
 	runCmd.PersistentFlags().IntVarP(&TerminalWidth, "terminalWidth", "w", term.GetTerminalWidth(), "Provides the terminal width")
 	runCmd.PersistentFlags().StringVarP(&ConfigContent, "config", "c", "", "Provides the configuration for watchful")
+	runCmd.PersistentFlags().StringVarP(&PushedAppSampleLanguage, "language", "l", "go", "Defines in which language "+
+		"the push sample app should be written")
 	rootCmd.AddCommand(runCmd)
 }

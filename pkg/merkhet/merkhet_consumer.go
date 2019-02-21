@@ -21,11 +21,11 @@
 package merkhet
 
 // ConsumerMethod describes the type of the methods allowed to consumer a merkhet
-type ConsumerMethod func(merkhet Merkhet, relay ControllerChannel)
+type ConsumerMethod func(m Merkhet, relay ControllerChannel) (err error)
 
 // Consumer defines an object that can consume a merkhet instance
 type Consumer interface {
-	Consume(merkhet Merkhet, relay ControllerChannel)
+	Consume(merkhet Merkhet, relay ControllerChannel) (err error)
 }
 
 // SyncedConsumer is a consumer that executes the consuming method in sync with the current go routine
@@ -34,8 +34,8 @@ type SyncedConsumer struct {
 }
 
 // Consume calls the passed consumer method in the current go routine
-func (s *SyncedConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
-	s.consumer(merkhet, relay)
+func (s *SyncedConsumer) Consume(merkhet Merkhet, relay ControllerChannel) (err error) {
+	return s.consumer(merkhet, relay)
 }
 
 // ConsumeSync creates a synced Consumer
@@ -51,11 +51,16 @@ type AsyncConsumer struct {
 }
 
 // Consume calls the passed consumer method in a new go routine
-func (a *AsyncConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
-	go a.consumer(merkhet, relay)
+func (a *AsyncConsumer) Consume(merkhet Merkhet, relay ControllerChannel) (err error) {
+	relay.WaitGroup.Add(1)
+	go func() {
+		a.consumer(merkhet, relay)
+		relay.WaitGroup.Done()
+	}()
+	return nil
 }
 
-// ConsumeAsync creates a async Consumer
+// ConsumeAsync creates a async Consumer. These consumers will never return an error, so make sure to catch it otherwise
 func ConsumeAsync(m ConsumerMethod) Consumer {
 	return &AsyncConsumer{
 		consumer: m,

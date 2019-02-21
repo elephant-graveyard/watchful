@@ -18,15 +18,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package executable
+package services
 
 import (
 	"github.com/homeport/watchful/internal/watchful/cfg"
 	"github.com/homeport/watchful/internal/watchful/merkhets"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
+	"path/filepath"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 var (
@@ -34,26 +36,28 @@ var (
 	PercentageThresholdRegex = regexp.MustCompile("([0-9]*\\.)?[0-9]*%")
 )
 
-// MerkhetExecutable defines the executable responsible for controlling the merkhets
-type MerkhetExecutable struct {
-	Configuration cfg.WatchfulConfig
+// MerkhetService defines the services responsible for controlling the merkhets
+type MerkhetService struct {
+	Configuration *cfg.WatchfulConfig
 	Pool          merkhet.Pool
 	LoggerFactory logger.Factory
 	LoggerGroup   logger.Group
+	AssetPath     string
 }
 
-// NewMerkhetExecutable creates a new merkhet executable service
-func NewMerkhetExecutable(Configuration cfg.WatchfulConfig, LoggerFactory logger.Factory, LoggerGroup logger.Group) *MerkhetExecutable {
-	return &MerkhetExecutable{
+// NewMerkhetService creates a new merkhet services service
+func NewMerkhetService(Configuration *cfg.WatchfulConfig, LoggerFactory logger.Factory, LoggerGroup logger.Group, AssetPath string) *MerkhetService {
+	return &MerkhetService{
 		Configuration: Configuration,
 		Pool:          merkhet.NewPool(),
 		LoggerGroup:   LoggerGroup,
 		LoggerFactory: LoggerFactory,
+		AssetPath:     AssetPath,
 	}
 }
 
 // Execute executes the given service
-func (e *MerkhetExecutable) Execute() error {
+func (e *MerkhetService) Execute() error {
 	for _, c := range e.Configuration.MerkhetConfigurations {
 		base, err := e.createMerkhetBase(c)
 		if err != nil {
@@ -62,25 +66,55 @@ func (e *MerkhetExecutable) Execute() error {
 
 		switch c.Name {
 		case "http-availability":
-			e.Pool.StartWorker(merkhets.NewDefaultCurlMerkhet(e.Configuration.CloudFoundryConfig.Domain, base), *c.HeartbeatRate, defaultHeartbeatHandler())
+			e.Pool.StartWorker(merkhets.NewDefaultCurlMerkhet(e.Configuration.CloudFoundryConfig.Domain, base,
+				filepath.Join(e.AssetPath, SampleAppSubPath)),
+				c.GetHeartbeatRate(5*time.Second), defaultHeartbeatHandler())
 		}
 	}
 
 	return nil
 }
 
+// ApplyWhitelist starts every merkhet that is listed in the name list and stops the rest
+func (e *MerkhetService) ApplyWhitelist(whitelisted []string) {
+	e.Pool.ForEachHeartbeat(func(heartbeat merkhet.Heartbeat) error {
+		isWhitelisted := contains(heartbeat.Worker().Merkhet().Base().Configuration().Name(), whitelisted)
+		if heartbeat.IsBeating() && !isWhitelisted {
+			heartbeat.StopBeating()
+		}
+		if !heartbeat.IsBeating() && isWhitelisted {
+			heartbeat.StartBeating()
+		}
+		return nil
+	})
+}
+
+// ApplyBlacklist stops every merkhet that is listed in the name list and starts the rest
+func (e *MerkhetService) ApplyBlacklist(blacklisted []string) {
+	e.Pool.ForEachHeartbeat(func(heartbeat merkhet.Heartbeat) error {
+		isBlacklisted := contains(heartbeat.Worker().Merkhet().Base().Configuration().Name(), blacklisted)
+		if heartbeat.IsBeating() && isBlacklisted {
+			heartbeat.StopBeating()
+		}
+		if !heartbeat.IsBeating() && !isBlacklisted {
+			heartbeat.StartBeating()
+		}
+		return nil
+	})
+}
+
 // createMerkhetBase creates a new merkhet base instance
-func (e *MerkhetExecutable) createMerkhetBase(configuration cfg.MerkhetConfiguration) (base merkhet.Base, err error) {
+func (e *MerkhetService) createMerkhetBase(configuration cfg.MerkhetConfiguration) (base merkhet.Base, err error) {
 	merkhetLogger := e.LoggerFactory.NewChanneledLogger(configuration.Name)
 	e.LoggerGroup.Add(merkhetLogger)
 
 	var merkhetConfig merkhet.Configuration
 	if PercentageThresholdRegex.Match([]byte(configuration.Threshold)) {
-		pureString := configuration.Threshold[len(configuration.Threshold)-2:]
+		pureString := configuration.Threshold[:len(configuration.Threshold)-1]
 		if f, err := strconv.ParseFloat(pureString, 64); err == nil {
 			merkhetConfig = merkhet.NewPercentageConfiguration(configuration.Name, f)
 		} else {
-			return nil ,err
+			return nil, err
 		}
 	} else {
 		if i, err := strconv.ParseInt(configuration.Threshold, 0, 32); err == nil {
@@ -90,19 +124,31 @@ func (e *MerkhetExecutable) createMerkhetBase(configuration cfg.MerkhetConfigura
 		}
 	}
 
-	return merkhet.NewSimpleBase(merkhetLogger, merkhetConfig) , nil
+	return merkhet.NewSimpleBase(merkhetLogger, merkhetConfig), nil
 }
 
 // defaultHeartbeatHandler creates a new default consumer
 func defaultHeartbeatHandler() merkhet.Consumer {
-	return merkhet.ConsumeAsync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) {
+	return merkhet.ConsumeAsync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) error {
 		e := m.Execute()
-		relay <- merkhet.ConsumeSync(func(merkhet merkhet.Merkhet, relay merkhet.ControllerChannel) {
+		relay.C <- merkhet.ConsumeSync(func(merkhet merkhet.Merkhet, relay merkhet.ControllerChannel) error {
 			if e == nil {
 				merkhet.Base().RecordSuccessfulRun()
 			} else {
 				merkhet.Base().RecordSuccessfulRun()
 			}
+			return nil
 		})
+		return nil
 	})
+}
+
+// contains checks if the string is contained in the string array
+func contains(match string, array []string) bool {
+	for _, s := range array {
+		if s == match {
+			return true
+		}
+	}
+	return false
 }

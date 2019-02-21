@@ -18,26 +18,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package executable
+package services
 
 import (
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 )
 
-// TeardownExecutable tears down the cf test instance
-type TeardownExecutable struct {
+// TeardownService tears down the cf test instance
+type TeardownService struct {
 	WatchfulLogger logger.Logger
 	Worker         cfw.CloudFoundryWorker
 }
 
-// NewTeardownExecutable creates a new teardown task
-func NewTeardownExecutable(watchfulLogger logger.Logger, worker cfw.CloudFoundryWorker) *TeardownExecutable {
-	return &TeardownExecutable{WatchfulLogger: watchfulLogger, Worker: worker}
+// NewTeardownService creates a new teardown task
+func NewTeardownService(watchfulLogger logger.Logger, worker cfw.CloudFoundryWorker) *TeardownService {
+	return &TeardownService{WatchfulLogger: watchfulLogger, Worker: worker}
 }
 
 // Execute executes a teardown
-func (e *TeardownExecutable) Execute() error {
+func (e *TeardownService) Execute() error {
 	e.WatchfulLogger.WriteString(logger.Info, "Tearing down test environment")
 	if err := e.Worker.TeardownTestEnvironment(); err != nil {
 		e.WatchfulLogger.WriteString(logger.Error, "Could not teardown test environment")
