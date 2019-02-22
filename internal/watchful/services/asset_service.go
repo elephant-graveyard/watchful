@@ -66,15 +66,9 @@ func (e *AssetService) Execute() error {
 		return err
 	}
 
-	if err := files.WriteToDisk(directory, e.ExportPath, true); err != nil {
-		e.Logger.WriteString(logger.Error, bunt.Sprintf("Red{could not export sample app}"))
-		return err
-	}
-
-	originalAssetName := filepath.Join(e.ExportPath, directory.Name().String())
 	newAssetName := filepath.Join(e.ExportPath, SampleAppSubPath)
-
-	if err := os.Rename(originalAssetName, newAssetName); err != nil {
+	if err := files.WriteToDisk(directory.AsRoot(), newAssetName, true); err != nil {
+		e.Logger.WriteString(logger.Error, bunt.Sprintf("Red{could not export sample app}"))
 		return err
 	}
 

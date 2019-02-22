@@ -66,16 +66,22 @@ func (m *CurlMerkhet) PostConnect() error {
 	if len(fullURL) < 2 {
 		return fmt.Errorf("provided domain did not contain protocol")
 	}
-	baseURL := strings.Split(strings.Replace(fullURL[1], "www." , "" , -1), ".")
+	baseURL := strings.Split(strings.Replace(fullURL[1], "www.", "", -1), ".")
 	if len(baseURL) < 2 {
 		return fmt.Errorf("provided domain did not contain enough path delimiters")
 	}
 	appName := baseURL[0]
 
 	m.Base().Logger().WriteString(logger.Info, fmt.Sprintf("Pushing app to %s", appName))
+
+	infoLogger := logger.NewByteBufferCachedLogger(m.Base().Logger().ReportingOn(logger.Error))
 	if err := cfw.NewBashCloudFoundryCLI().Push(m.AssetPath, appName, 1).
 		SubscribeOnErr(m.Base().Logger().ReportingOn(logger.Error)).
-		Sync(); err != nil {
+		SubscribeOnOut(infoLogger).Sync();
+		err != nil {
+
+		m.Base().Logger().WriteString(logger.Error, "Could not post connect curl, printing full log")
+		infoLogger.Flush()
 		return err
 	}
 	m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("Pushed sample-app successfully"))
@@ -86,12 +92,12 @@ func (m *CurlMerkhet) PostConnect() error {
 func (m *CurlMerkhet) Execute() error {
 	response, err := m.HTTPClient.Get(m.Domain)
 	if err != nil {
-		m.BaseReference.Logger().WriteString(logger.Info, bunt.Sprintf("Red{Failed to curl: } %s", err.Error()))
+		m.BaseReference.Logger().WriteString(logger.Error, bunt.Sprintf("Red{Failed to curl: } %s", err.Error()))
 		return err
 	}
 
 	if response.StatusCode != http.StatusOK {
-		m.BaseReference.Logger().WriteString(logger.Info, bunt.Sprintf("Red{Failed to curl: } Response Code: %d", response.StatusCode))
+		m.BaseReference.Logger().WriteString(logger.Error, bunt.Sprintf("Red{Failed to curl: } Response Code: %d", response.StatusCode))
 		return fmt.Errorf("the domain %s returned status code %d", m.Domain, response.StatusCode)
 	}
 

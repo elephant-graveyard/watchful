@@ -77,30 +77,28 @@ func (e *MerkhetService) Execute() error {
 
 // ApplyWhitelist starts every merkhet that is listed in the name list and stops the rest
 func (e *MerkhetService) ApplyWhitelist(whitelisted []string) {
-	e.Pool.ForEachHeartbeat(func(heartbeat merkhet.Heartbeat) error {
-		isWhitelisted := contains(heartbeat.Worker().Merkhet().Base().Configuration().Name(), whitelisted)
-		if heartbeat.IsBeating() && !isWhitelisted {
-			heartbeat.StopBeating()
+	for _, heart := range e.Pool.BeatingHearts() {
+		isWhitelisted := contains(heart.Worker().Merkhet().Base().Configuration().Name(), whitelisted)
+		if heart.IsBeating() && !isWhitelisted {
+			heart.StopBeating()
 		}
-		if !heartbeat.IsBeating() && isWhitelisted {
-			heartbeat.StartBeating()
+		if !heart.IsBeating() && isWhitelisted {
+			heart.StartBeating()
 		}
-		return nil
-	})
+	}
 }
 
 // ApplyBlacklist stops every merkhet that is listed in the name list and starts the rest
 func (e *MerkhetService) ApplyBlacklist(blacklisted []string) {
-	e.Pool.ForEachHeartbeat(func(heartbeat merkhet.Heartbeat) error {
-		isBlacklisted := contains(heartbeat.Worker().Merkhet().Base().Configuration().Name(), blacklisted)
-		if heartbeat.IsBeating() && isBlacklisted {
-			heartbeat.StopBeating()
+	for _, heart := range e.Pool.BeatingHearts() {
+		isBlacklisted := contains(heart.Worker().Merkhet().Base().Configuration().Name(), blacklisted)
+		if heart.IsBeating() && isBlacklisted {
+			heart.StopBeating()
 		}
-		if !heartbeat.IsBeating() && !isBlacklisted {
-			heartbeat.StartBeating()
+		if !heart.IsBeating() && !isBlacklisted {
+			heart.StartBeating()
 		}
-		return nil
-	})
+	}
 }
 
 // createMerkhetBase creates a new merkhet base instance
@@ -129,17 +127,13 @@ func (e *MerkhetService) createMerkhetBase(configuration cfg.MerkhetConfiguratio
 
 // defaultHeartbeatHandler creates a new default consumer
 func defaultHeartbeatHandler() merkhet.Consumer {
-	return merkhet.ConsumeAsync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) error {
-		e := m.Execute()
-		relay.C <- merkhet.ConsumeSync(func(merkhet merkhet.Merkhet, relay merkhet.ControllerChannel) error {
-			if e == nil {
-				merkhet.Base().RecordSuccessfulRun()
-			} else {
-				merkhet.Base().RecordSuccessfulRun()
-			}
-			return nil
-		})
-		return nil
+	return merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
+		future.Complete(m.Execute())
+		if _, err := future.IsCompleted(); err != nil {
+			m.Base().RecordFailedRun()
+		} else {
+			m.Base().RecordSuccessfulRun()
+		}
 	})
 }
 

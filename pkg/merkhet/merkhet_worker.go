@@ -20,14 +20,9 @@
 
 package merkhet
 
-import (
-	"sync"
-)
-
 // ControllerChannel is the channel type that is used to send consumers to the running Worker instance
 type ControllerChannel struct {
 	C         chan Consumer
-	WaitGroup *sync.WaitGroup
 }
 
 // Worker is a wrapper for a created go routine that handles an existing merkhet instance running
@@ -64,7 +59,7 @@ func (s *SimpleWorkerTask) Merkhet() Merkhet {
 // This has to be called in a different go routine, or it will block the calling routine
 func (s *SimpleWorkerTask) StartWorker() {
 	for request := range s.ControllerChannel().C {
-		request.Consume(s.Merkhet(), s.ControllerChannel())
+		request.Consume(s.Merkhet(), NewFuture())
 	}
 }
 
@@ -74,7 +69,6 @@ func NewMerkhetWorker(merkhet Merkhet) *SimpleWorkerTask {
 		merkhet: merkhet,
 		master: ControllerChannel{
 			C:         make(chan Consumer),
-			WaitGroup: &sync.WaitGroup{},
 		},
 	}
 }

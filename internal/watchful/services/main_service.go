@@ -62,11 +62,11 @@ func (e *MainService) Execute() error {
 	config := &cfg.WatchfulConfig{}
 	if len(e.ConfigContent) > 0 { // Load config
 		if err := cfg.ParseFromString(e.ConfigContent, config); err != nil {
-			return err
+			return errors.Wrap(err, "could not parse cli provided config")
 		}
 	} else {
 		if err := cfg.ParseFromFile("config.yml", config); err != nil {
-			return err
+			return errors.Wrap(err, "could not parse file based config")
 		}
 	}
 
@@ -88,7 +88,7 @@ func (e *MainService) Execute() error {
 	}
 
 	loggerClusterConfig := logger.NewSplitPipelineConfig(config.LoggerConfiguration.PrintLoggerName, location, e.TerminalWidth, loggerConfig) // Create cluster
-	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout),                                         // Create pipeline
+	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout), // Create pipeline
 		loggerChannelProvider, time.Second)
 	go loggerCluster.StartListening() // Start cluster
 
@@ -110,32 +110,27 @@ func (e *MainService) Execute() error {
 		return err
 	}
 
-	watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets}"))
-	installError := merkhetCore.Pool.ForEach(merkhet.ConsumeSync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) error {
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Installing Aqua{%s}\n...", m.Base().Configuration().Name()))
-		if err := m.Install(); err != nil {
-			return err
-		}
-		return nil
-	}))
-	if installError != nil {
-		return errors.Wrap(installError, "could not install merkhets")
-	}
-
 	go func() {
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets}"))
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{  ->}"))
+		if err := merkhetCore.Pool.ForEach(merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
+			future.Complete(m.Install())
+			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Installed Aqua{%s}", m.Base().Configuration().Name()))
+		})).Wait().FirstError(); err != nil {
+			shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, "could not install merkhets")}
+			return
+		}
+
 		NewSetupService(config.CloudFoundryConfig, watchfulLogger, taskLogger, worker).Execute() // Run setup logic
 		taskWorker := NewCloudFoundryService(config.TaskConfigurations, cloudFoundryLogger)
 
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-connecting merkhets}"))
-		postConnectError := merkhetCore.Pool.ForEach(merkhet.ConsumeSync(func(m merkhet.Merkhet, relay merkhet.ControllerChannel) error { // post connect merkhets
-			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Post-Connecting Aqua{%s}\n...", m.Base().Configuration().Name()))
-			if err := m.PostConnect(); err != nil {
-				return errors.Wrap(err, "could not post connect "+m.Base().Configuration().Name())
-			}
-			return nil
-		}))
-		if postConnectError != nil { // catch post connect errors
-			shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(postConnectError, fmt.Sprintf("Faliure in post-connected"))}
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-Connecting merkhets}"))
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{  ->}"))
+		if err := merkhetCore.Pool.ForEach(merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
+			future.Complete(m.PostConnect())
+			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Post-Connected Aqua{%s}", m.Base().Configuration().Name()))
+		})).Wait().FirstError(); err != nil {
+			shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, "could not post-connect merkhets")}
 			return
 		}
 
@@ -176,8 +171,7 @@ func (e *MainService) Execute() error {
 	watchfulLogger.WriteString(logger.Info, bunt.Sprintf("DarkGreen{Shutdown merkhets}")) // stop merkhets
 
 	NewTeardownService(watchfulLogger, worker).Execute() // Teardown cf env
-
-	assetService.Cleanup() // Cleans the asset service
+	assetService.Cleanup()                               // Cleans the asset service
 
 	watchfulLogger.WriteString(logger.Info, "Done ! Shutting down..")
 	loggerChannelProvider.Close()

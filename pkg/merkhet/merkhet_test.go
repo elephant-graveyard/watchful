@@ -61,8 +61,8 @@ var _ = Describe("Merkhet code test", func() {
 
 			pool.StartWorker(merkhet, time.Second, nil)
 
-			pool.ForEach(ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) error {
-				return merkhet.Install()
+			pool.ForEach(ConsumeSync(func(m Merkhet, future Future) {
+				future.Complete(m.Install())
 			}))
 
 			pool.Shutdown()
@@ -78,14 +78,10 @@ var _ = Describe("Merkhet code test", func() {
 
 			pool.StartWorker(merkhet, time.Second, nil)
 
-			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) error {
-				merkhet.Execute()
-				relay.C <- ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) error {
-					Succeed()
-					close(done)
-					return nil
-				})
-				return nil
+			pool.ForEach(ConsumeAsync(func(m Merkhet, future Future) {
+				future.Complete(merkhet.Execute())
+				Succeed()
+				close(done)
 			}))
 		}, 5*1000)
 
@@ -97,33 +93,21 @@ var _ = Describe("Merkhet code test", func() {
 				},
 			})
 
-			c := make(chan Result)
 			pool.StartWorker(merkhet, time.Second, nil)
+			er := pool.ForEach(ConsumeAsync(func(m Merkhet, future Future) {
+				future.Complete(m.Execute())
+				m.Base().RecordSuccessfulRun()
+			})).Wait().FirstError()
 
-			pool.ForEach(ConsumeAsync(func(merkhet Merkhet, relay ControllerChannel) error {
-				e := merkhet.Execute()
-				relay.C <- ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) error {
-					if e == nil {
-						merkhet.Base().RecordSuccessfulRun()
-					} else {
-						merkhet.Base().RecordFailedRun()
-					}
-
-					c <- merkhet.Base().NewResultSet()
-					return nil
-				})
-				return nil
-			}))
-
-			result := <-c
-			Expect(result.SuccessfulRuns()).To(BeEquivalentTo(1))
+			Expect(er).To(BeNil())
+			Expect(merkhet.Base().NewResultSet().SuccessfulRuns()).To(BeEquivalentTo(1))
 			close(done)
 		}, 5*1000)
 
 		It("should beat correctly", func(done Done) {
-			pool.StartWorker(merkhet, 10*time.Millisecond, ConsumeSync(func(merkhet Merkhet, relay ControllerChannel) error {
-				merkhet.Base().RecordSuccessfulRun()
-				return nil
+			pool.StartWorker(merkhet, 10*time.Millisecond, ConsumeSync(func(m Merkhet, future Future) {
+				m.Base().RecordSuccessfulRun()
+				future.Complete(nil)
 			}))
 			pool.StartHeartbeats()
 			time.Sleep(time.Second)

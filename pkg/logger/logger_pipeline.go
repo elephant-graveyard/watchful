@@ -84,6 +84,10 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 			slices = ChunkSlice(message, s.config.CharacterPerPipe-loggerGroup.MaxPrefixSize())
 
 			loggerPrefix := m.Logger.AsPrefix()
+			if m.Level == Error {
+				loggerPrefix = bunt.Sprintf("Red{%s}", loggerPrefix)
+			}
+
 			for index, slice := range slices {
 				slices[index] = loggerPrefix + slice
 			}
