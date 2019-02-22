@@ -55,7 +55,7 @@ func NewAssetService(sampleAppLanguage string, logger logger.Logger, ExportPath 
 	return &AssetService{
 		SampleAppLanguage: sampleAppLanguage,
 		Logger:            logger,
-		ExportPath:        ExportPath,
+		ExportPath:        filepath.Join(".", ExportPath),
 	}
 }
 
@@ -71,8 +71,13 @@ func (e *AssetService) Execute() error {
 		return err
 	}
 
-	os.Rename(filepath.Join(e.ExportPath, directory.Name().String()), filepath.Join(e.ExportPath, SampleAppSubPath))
+	originalAssetName := filepath.Join(e.ExportPath, directory.Name().String())
+	newAssetName := filepath.Join(e.ExportPath, SampleAppSubPath)
 
-	e.Logger.WriteString(logger.Info, bunt.Sprintf("SpringGreen{Exported sample-app to %s}", e.ExportPath))
+	if err := os.Rename(originalAssetName, newAssetName); err != nil {
+		return err
+	}
+
+	e.Logger.WriteString(logger.Info, bunt.Sprintf("SpringGreen{Exported sample-app to %s}", newAssetName))
 	return nil
 }

@@ -35,7 +35,7 @@ import (
 
 var (
 	// ExportPath is the path assets are exported to
-	ExportPath = "./temp"
+	ExportPath = "temp"
 )
 
 // Service is an interface that defines an object that is capable of being executed
@@ -88,7 +88,7 @@ func (e *MainService) Execute() error {
 	}
 
 	loggerClusterConfig := logger.NewSplitPipelineConfig(config.LoggerConfiguration.PrintLoggerName, location, e.TerminalWidth, loggerConfig) // Create cluster
-	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout), // Create pipeline
+	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout),                                         // Create pipeline
 		loggerChannelProvider, time.Second)
 	go loggerCluster.StartListening() // Start cluster
 
