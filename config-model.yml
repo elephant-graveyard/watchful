@@ -1,6 +1,6 @@
 ---
 cf:
-  domain: domain.com
+  domain: https://domain.com
   api-endpoint: api.domain.com
   skip-ssl-validation: true
   custom-cli-parameters:
@@ -18,7 +18,7 @@ tasks:
         set -euo pipefail
 
         echo "Hello, World!"
-        ping -c 10 github.com
+        ping -c 100 github.com
 
 merkhets:
   - name: app-pushability

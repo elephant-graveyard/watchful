@@ -34,6 +34,9 @@ const (
 
 	// Error represents the logging level info
 	Error
+
+	// Debug defines a channel that will only be printed if the verbose option is enabled
+	Debug
 )
 
 const (

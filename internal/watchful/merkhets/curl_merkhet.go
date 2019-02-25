@@ -27,13 +27,19 @@ import (
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
 	"net/http"
-	"strings"
+	"net/url"
 	"time"
+)
+
+var (
+	// AppName is the app name for the curl merkhet
+	AppName = "curl-merkhet"
 )
 
 // CurlMerkhet is an implementation of the Merkhet interface that curls against a domain
 type CurlMerkhet struct {
-	Domain        string
+	BaseDomain    string
+	CurlDomain    *string
 	BaseReference merkhet.Base
 	HTTPClient    *http.Client
 	AssetPath     string
@@ -41,14 +47,14 @@ type CurlMerkhet struct {
 
 // NewDefaultCurlMerkhet creates a new curl merkhet instance
 func NewDefaultCurlMerkhet(domain string, baseReference merkhet.Base, AssetPath string) *CurlMerkhet {
-	return NewCurlMerkhet(domain, baseReference, &http.Client{}, 115*time.Second, AssetPath)
+	return NewCurlMerkhet(domain, baseReference, &http.Client{}, 30*time.Second, AssetPath)
 }
 
 // NewCurlMerkhet creates a new curl merkhet instance
-func NewCurlMerkhet(domain string, baseReference merkhet.Base, httpClient *http.Client, timeout time.Duration, AssetPath string) *CurlMerkhet {
+func NewCurlMerkhet(baseDomain string, baseReference merkhet.Base, httpClient *http.Client, timeout time.Duration, AssetPath string) *CurlMerkhet {
 	httpClient.Timeout = timeout
 	return &CurlMerkhet{
-		Domain:        domain,
+		BaseDomain:    baseDomain,
 		BaseReference: baseReference,
 		HTTPClient:    httpClient,
 		AssetPath:     AssetPath,
@@ -57,25 +63,23 @@ func NewCurlMerkhet(domain string, baseReference merkhet.Base, httpClient *http.
 
 // Install installs the merkhet. This does virtually nothing as curl doesn't need setup
 func (m *CurlMerkhet) Install() error {
+	parsedURL, e := url.Parse(m.BaseDomain)
+	if e != nil {
+		m.Base().Logger().WriteString(logger.Error, fmt.Sprintf("Could not parse url from domain %s", m.BaseDomain))
+		return e
+	}
+
+	domain := parsedURL.Scheme + "://" + AppName + "." + parsedURL.Host
+	m.CurlDomain = &domain
 	return nil
 }
 
 // PostConnect is called after watchful was authorized against the cloud foundry cluster
 func (m *CurlMerkhet) PostConnect() error {
-	fullURL := strings.Split(m.Domain, "://")
-	if len(fullURL) < 2 {
-		return fmt.Errorf("provided domain did not contain protocol")
-	}
-	baseURL := strings.Split(strings.Replace(fullURL[1], "www.", "", -1), ".")
-	if len(baseURL) < 2 {
-		return fmt.Errorf("provided domain did not contain enough path delimiters")
-	}
-	appName := baseURL[0]
-
-	m.Base().Logger().WriteString(logger.Info, fmt.Sprintf("Pushing app to %s", appName))
+	m.Base().Logger().WriteString(logger.Info, fmt.Sprintf("Pushing app to %s", *m.CurlDomain))
 
 	infoLogger := logger.NewByteBufferCachedLogger(m.Base().Logger().ReportingOn(logger.Error))
-	if err := cfw.NewBashCloudFoundryCLI().Push(m.AssetPath, appName, 1).
+	if err := cfw.NewBashCloudFoundryCLI().Push(m.AssetPath, AppName, 1).
 		SubscribeOnErr(m.Base().Logger().ReportingOn(logger.Error)).
 		SubscribeOnOut(infoLogger).Sync();
 		err != nil {
@@ -84,14 +88,21 @@ func (m *CurlMerkhet) PostConnect() error {
 		infoLogger.Flush()
 		return err
 	}
-		infoLogger.Clear()
+	infoLogger.Clear()
 	m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("Pushed sample-app successfully"))
 	return nil
 }
 
 // Execute executes one single test. This will curl against the domain
 func (m *CurlMerkhet) Execute() error {
-	response, err := m.HTTPClient.Get(m.Domain)
+	var curlDomain string
+	if m.CurlDomain != nil {
+		curlDomain = *m.CurlDomain
+	} else {
+		curlDomain = m.BaseDomain
+	}
+
+	response, err := m.HTTPClient.Get(curlDomain)
 	if err != nil {
 		m.BaseReference.Logger().WriteString(logger.Error, bunt.Sprintf("Red{Failed to curl: } %s", err.Error()))
 		return err
@@ -99,7 +110,7 @@ func (m *CurlMerkhet) Execute() error {
 
 	if response.StatusCode != http.StatusOK {
 		m.BaseReference.Logger().WriteString(logger.Error, bunt.Sprintf("Red{Failed to curl: } Response Code: %d", response.StatusCode))
-		return fmt.Errorf("the domain %s returned status code %d", m.Domain, response.StatusCode)
+		return fmt.Errorf("the domain %s returned status code %d", m.BaseDomain, response.StatusCode)
 	}
 
 	m.BaseReference.Logger().WriteString(logger.Info, bunt.Sprintf("SpringGreen{Curled successfully}"))

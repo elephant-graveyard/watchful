@@ -23,6 +23,7 @@ package services
 import (
 	"github.com/homeport/watchful/internal/watchful/cfg"
 	"github.com/homeport/watchful/internal/watchful/merkhets"
+	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
 	"path/filepath"
@@ -68,7 +69,10 @@ func (e *MerkhetService) Execute() error {
 		case "http-availability":
 			e.Pool.StartWorker(merkhets.NewDefaultCurlMerkhet(e.Configuration.CloudFoundryConfig.Domain, base,
 				filepath.Join(e.AssetPath, SampleAppSubPath)),
-				c.GetHeartbeatRate(5*time.Second), defaultHeartbeatHandler())
+				c.GetHeartbeatRate(time.Second), e.defaultHeartbeatHandler())
+		case "app-pushability":
+			e.Pool.StartWorker(merkhets.NewPushMerkhet(base, filepath.Join(e.AssetPath, SampleAppSubPath),
+				cfw.NewBashCloudFoundryCLI()), c.GetHeartbeatRate(time.Minute), e.defaultHeartbeatHandler())
 		}
 	}
 
@@ -110,7 +114,7 @@ func (e *MerkhetService) createMerkhetBase(configuration cfg.MerkhetConfiguratio
 	if PercentageThresholdRegex.Match([]byte(configuration.Threshold)) {
 		pureString := configuration.Threshold[:len(configuration.Threshold)-1]
 		if f, err := strconv.ParseFloat(pureString, 64); err == nil {
-			merkhetConfig = merkhet.NewPercentageConfiguration(configuration.Name, f / float64(100))
+			merkhetConfig = merkhet.NewPercentageConfiguration(configuration.Name, f/float64(100))
 		} else {
 			return nil, err
 		}
@@ -126,7 +130,7 @@ func (e *MerkhetService) createMerkhetBase(configuration cfg.MerkhetConfiguratio
 }
 
 // defaultHeartbeatHandler creates a new default consumer
-func defaultHeartbeatHandler() merkhet.Consumer {
+func (e *MerkhetService) defaultHeartbeatHandler() merkhet.Consumer {
 	return merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
 		future.Complete(m.Execute())
 		if _, err := future.IsCompleted(); err != nil {
@@ -134,7 +138,7 @@ func defaultHeartbeatHandler() merkhet.Consumer {
 		} else {
 			m.Base().RecordSuccessfulRun()
 		}
-	})
+	}).Notify(e.Pool.TaskWaitGroup())
 }
 
 // contains checks if the string is contained in the string array
