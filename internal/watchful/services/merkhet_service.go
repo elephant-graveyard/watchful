@@ -110,7 +110,7 @@ func (e *MerkhetService) createMerkhetBase(configuration cfg.MerkhetConfiguratio
 	if PercentageThresholdRegex.Match([]byte(configuration.Threshold)) {
 		pureString := configuration.Threshold[:len(configuration.Threshold)-1]
 		if f, err := strconv.ParseFloat(pureString, 64); err == nil {
-			merkhetConfig = merkhet.NewPercentageConfiguration(configuration.Name, f)
+			merkhetConfig = merkhet.NewPercentageConfiguration(configuration.Name, f / float64(100))
 		} else {
 			return nil, err
 		}

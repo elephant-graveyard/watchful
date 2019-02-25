@@ -149,13 +149,32 @@ func (e *MainService) Execute() error {
 			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Executing task} #%d", taskIndex))
 			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Using merkhets: }")) // Print currently running merkhets
 			for _, beat := range merkhetCore.Pool.BeatingHearts() {
-				watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Gray{ - } Aqua{%s}", beat.Worker().Merkhet().Base().Configuration().Name()))
+				watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Gray{ - } Aqua{%s} : DeepSkyBlue{Failure threshold %s}",
+					beat.Worker().Merkhet().Base().Configuration().Name(), beat.Worker().Merkhet().Base().Configuration().ThresholdAsString()))
 			}
 
 			if err := taskWorker.Execute(); err != nil {
 				taskLogger.WriteString(logger.Error, err.Error())
 				watchfulLogger.WriteString(logger.Error, bunt.Sprintf("Red{Task #%d failed}", taskIndex))
 				shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, fmt.Sprintf("Faliure in task #%d", taskIndex))} // Shutdown with the given error
+				return
+			}
+
+			if err := merkhetCore.Pool.ForEach(merkhet.ConsumeSync(func(m merkhet.Merkhet, future merkhet.Future) { // Check merkhet result
+				result := m.Base().NewResultSet()
+				if !result.Valid() {
+					m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("Red{Tests failed} with (%d/%d) failed runs",
+						result.FailedRuns(), result.TotalRuns()))
+
+					future.Complete(fmt.Errorf("%s failed it's threshold with (%d/%d) failed runs",
+						m.Base().Configuration().Name(), result.FailedRuns(), result.TotalRuns()))
+				} else {
+					m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("Green{Tests passed} with (%d/%d) successful runs",
+						result.SuccessfulRuns(), result.TotalRuns()))
+					future.Complete(nil)
+				}
+			})).FirstError(); err != nil {
+				shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, fmt.Sprintf("Faliure in merkhet for task #%d", taskIndex))} // Shutdown with the given error
 				return
 			}
 

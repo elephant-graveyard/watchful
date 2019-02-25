@@ -21,8 +21,15 @@
 package logger
 
 // CachedLogger defines a logger wrapper that caches the messages send and will only flushes them when called fr
+//
+// Write writes the bytes to the cached logger
+//
+// Clear clears the content of the logger
+//
+// Flush flushes the logger content
 type CachedLogger interface {
 	Write(b []byte) (n int, err error)
+	Clear()
 	Flush()
 }
 
@@ -43,6 +50,11 @@ func (l *ByteBufferCachedLogger) Flush() {
 	for _, message := range l.cache {
 		l.wrapped.Write([]byte(message))
 	}
+}
+
+// Clear clears the content of the logger
+func (l *ByteBufferCachedLogger) Clear() {
+	l.cache = nil
 }
 
 // NewByteBufferCachedLogger creates a new cached logger that wraps the reporting writer

@@ -84,6 +84,7 @@ func (m *CurlMerkhet) PostConnect() error {
 		infoLogger.Flush()
 		return err
 	}
+		infoLogger.Clear()
 	m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("Pushed sample-app successfully"))
 	return nil
 }

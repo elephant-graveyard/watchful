@@ -98,5 +98,5 @@ func (b *SimpleBase) RecordFailedRun() {
 // NewResultSet builds a new result set instance
 func (b *SimpleBase) NewResultSet() Result {
 	totalRuns := b.FailedRun + b.SuccessfulRuns
-	return NewMerkhetResult(totalRuns, b.FailedRun, b.Configuration().ValidRun(totalRuns, b.FailedRun))
+	return NewMerkhetResult(b.SuccessfulRuns, b.FailedRun, b.Configuration().ValidRun(totalRuns, b.FailedRun))
 }

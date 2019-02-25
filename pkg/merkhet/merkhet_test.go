@@ -86,7 +86,7 @@ var _ = Describe("Merkhet code test", func() {
 		}, 5*1000)
 
 		It("should not produce a data race and record a successful run", func(done Done) {
-			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 0, 2, true, &MerkhetCallback{
+			merkhet = NewMerkhetMock(NewFlatConfiguration("test-config", 2), 2, 2, true, &MerkhetCallback{
 				onExecute: func() error {
 					time.Sleep(time.Second)
 					return nil
