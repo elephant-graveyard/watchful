@@ -30,7 +30,7 @@ import (
 func main() {
 	go spamLog(time.Second)
 
-	fmt.Println("Starting watchful sample app for curl merkhets!")
+	fmt.Println("Starting watchful sample app for merkhet!")
 	http.HandleFunc("/", renderIndexPage)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
@@ -49,7 +49,7 @@ func spamLog(iteration time.Duration) {
 	for {
 		select {
 		case t := <-ticker.C:
-			fmt.Println(t.Unix())
+			fmt.Printf("Timestamp{%d}\n", t.Unix())
 		}
 	}
 }

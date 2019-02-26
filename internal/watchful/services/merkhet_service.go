@@ -26,7 +26,6 @@ import (
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"time"
@@ -43,17 +42,19 @@ type MerkhetService struct {
 	Pool          merkhet.Pool
 	LoggerFactory logger.Factory
 	LoggerGroup   logger.Group
-	AssetPath     string
+	AppProvider   merkhets.AppProvider
+	Cli           cfw.CloudFoundryCLI
 }
 
 // NewMerkhetService creates a new merkhet services service
-func NewMerkhetService(Configuration *cfg.WatchfulConfig, LoggerFactory logger.Factory, LoggerGroup logger.Group, AssetPath string) *MerkhetService {
+func NewMerkhetService(configuration *cfg.WatchfulConfig, loggerFactory logger.Factory, loggerGroup logger.Group, appProvider merkhets.AppProvider, cli cfw.CloudFoundryCLI) *MerkhetService {
 	return &MerkhetService{
-		Configuration: Configuration,
+		Configuration: configuration,
 		Pool:          merkhet.NewPool(),
-		LoggerGroup:   LoggerGroup,
-		LoggerFactory: LoggerFactory,
-		AssetPath:     AssetPath,
+		LoggerGroup:   loggerGroup,
+		LoggerFactory: loggerFactory,
+		AppProvider:   appProvider,
+		Cli:           cli,
 	}
 }
 
@@ -68,11 +69,17 @@ func (e *MerkhetService) Execute() error {
 		switch c.Name {
 		case "http-availability":
 			e.Pool.StartWorker(merkhets.NewDefaultCurlMerkhet(e.Configuration.CloudFoundryConfig.Domain, base,
-				filepath.Join(e.AssetPath, SampleAppSubPath)),
+				e.AppProvider),
 				c.GetHeartbeatRate(time.Second), e.defaultHeartbeatHandler())
 		case "app-pushability":
-			e.Pool.StartWorker(merkhets.NewPushMerkhet(base, filepath.Join(e.AssetPath, SampleAppSubPath),
+			e.Pool.StartWorker(merkhets.NewPushMerkhet(base, e.AppProvider,
 				cfw.NewBashCloudFoundryCLI()), c.GetHeartbeatRate(time.Minute), e.defaultHeartbeatHandler())
+		case "cf-recent-log-functionality":
+			e.Pool.StartWorker(merkhets.NewLogRecentMerkhet(e.Cli, e.AppProvider, base),
+				c.GetHeartbeatRate(10*time.Second), e.defaultHeartbeatHandler())
+		case "cf-log-functionality":
+			e.Pool.StartWorker(merkhets.NewLogStreamMerkhet(e.Cli, e.AppProvider, base),
+				c.GetHeartbeatRate(30*time.Second), e.defaultHeartbeatHandler())
 		}
 	}
 

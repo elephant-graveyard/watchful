@@ -23,7 +23,6 @@ package merkhets
 import (
 	"fmt"
 	"github.com/homeport/gonvenience/pkg/v1/bunt"
-	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
 	"net/http"
@@ -31,33 +30,28 @@ import (
 	"time"
 )
 
-var (
-	// AppName is the app name for the curl merkhet
-	AppName = "curl-merkhet"
-)
-
 // CurlMerkhet is an implementation of the Merkhet interface that curls against a domain
 type CurlMerkhet struct {
-	BaseDomain    string
-	CurlDomain    *string
-	BaseReference merkhet.Base
-	HTTPClient    *http.Client
-	AssetPath     string
+	CurlDomain        *string
+	BaseDomain        string
+	BaseReference     merkhet.Base
+	HTTPClient        *http.Client
+	SingleAppProvider AppProvider
 }
 
 // NewDefaultCurlMerkhet creates a new curl merkhet instance
-func NewDefaultCurlMerkhet(domain string, baseReference merkhet.Base, AssetPath string) *CurlMerkhet {
-	return NewCurlMerkhet(domain, baseReference, &http.Client{}, 30*time.Second, AssetPath)
+func NewDefaultCurlMerkhet(domain string, baseReference merkhet.Base, appProvider AppProvider) *CurlMerkhet {
+	return NewCurlMerkhet(domain, baseReference, &http.Client{}, 30*time.Second, appProvider)
 }
 
 // NewCurlMerkhet creates a new curl merkhet instance
-func NewCurlMerkhet(baseDomain string, baseReference merkhet.Base, httpClient *http.Client, timeout time.Duration, AssetPath string) *CurlMerkhet {
+func NewCurlMerkhet(baseDomain string, baseReference merkhet.Base, httpClient *http.Client, timeout time.Duration, appProvider AppProvider) *CurlMerkhet {
 	httpClient.Timeout = timeout
 	return &CurlMerkhet{
-		BaseDomain:    baseDomain,
-		BaseReference: baseReference,
-		HTTPClient:    httpClient,
-		AssetPath:     AssetPath,
+		BaseDomain:        baseDomain,
+		BaseReference:     baseReference,
+		HTTPClient:        httpClient,
+		SingleAppProvider: appProvider,
 	}
 }
 
@@ -69,27 +63,22 @@ func (m *CurlMerkhet) Install() error {
 		return e
 	}
 
-	domain := parsedURL.Scheme + "://" + AppName + "." + parsedURL.Host
+	domain := parsedURL.Scheme + "://" + m.SingleAppProvider.AppName() + "." + parsedURL.Host
 	m.CurlDomain = &domain
 	return nil
 }
 
 // PostConnect is called after watchful was authorized against the cloud foundry cluster
 func (m *CurlMerkhet) PostConnect() error {
-	m.Base().Logger().WriteString(logger.Info, fmt.Sprintf("Pushing app to %s", *m.CurlDomain))
-
-	infoLogger := logger.NewByteBufferCachedLogger(m.Base().Logger().ReportingOn(logger.Error))
-	if err := cfw.NewBashCloudFoundryCLI().Push(m.AssetPath, AppName, 1).
-		SubscribeOnErr(m.Base().Logger().ReportingOn(logger.Error)).
-		SubscribeOnOut(infoLogger).Sync();
-		err != nil {
-
-		m.Base().Logger().WriteString(logger.Error, "Could not post connect curl, printing full log")
-		infoLogger.Flush()
+	infoLog, errorLog, err := m.SingleAppProvider.Push(m.Base().Logger())
+	if err != nil {
+		m.Base().Logger().WriteString(logger.Error, "Could not post-connect upstream sample-app, printing logs")
+		infoLog.Flush()
+		errorLog.Flush()
 		return err
 	}
-	infoLogger.Clear()
-	m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("Pushed sample-app successfully"))
+
+	m.Base().Logger().WriteString(logger.Info, "Post-Connected curl-merkhet")
 	return nil
 }
 
@@ -113,7 +102,7 @@ func (m *CurlMerkhet) Execute() error {
 		return fmt.Errorf("the domain %s returned status code %d", m.BaseDomain, response.StatusCode)
 	}
 
-	m.BaseReference.Logger().WriteString(logger.Info, bunt.Sprintf("SpringGreen{Curled successfully}"))
+	m.BaseReference.Logger().WriteString(logger.Debug, bunt.Sprintf("SpringGreen{Curled successfully}"))
 	return nil
 }
 

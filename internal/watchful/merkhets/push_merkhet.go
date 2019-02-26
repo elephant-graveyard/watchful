@@ -25,19 +25,18 @@ import (
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
-	"github.com/pkg/errors"
 )
 
 // PushMerkhet is a merkhet implementation that pushes a cf app to the instance
 type PushMerkhet struct {
 	BaseReference   merkhet.Base
-	AssetPath       string
 	CloudFoundryCLI cfw.CloudFoundryCLI
+	AppProvider     AppProvider
 }
 
 // NewPushMerkhet creates a new push merkhet
-func NewPushMerkhet(baseReference merkhet.Base, assetPath string, cloudFoundryCLI cfw.CloudFoundryCLI) *PushMerkhet {
-	return &PushMerkhet{BaseReference: baseReference, AssetPath: assetPath, CloudFoundryCLI: cloudFoundryCLI}
+func NewPushMerkhet(baseReference merkhet.Base, appProvider AppProvider, cloudFoundryCLI cfw.CloudFoundryCLI) *PushMerkhet {
+	return &PushMerkhet{BaseReference: baseReference, AppProvider: appProvider, CloudFoundryCLI: cloudFoundryCLI}
 }
 
 // Install does nothing on the push merkhet
@@ -52,18 +51,19 @@ func (m *PushMerkhet) PostConnect() error {
 
 // Execute tries to push an app to the cloud foundry
 func (m *PushMerkhet) Execute() error {
-	cachedLogger := logger.NewByteBufferCachedLogger(m.Base().Logger().ReportingOn(logger.Debug))
+	infoLog, errorLog, err := m.AppProvider.ForcePush(m.Base().Logger(), m.Base().Configuration().Name())
+	if err != nil {
+		m.Base().Logger().WriteString(logger.Error, "Could not push app to cf instance")
 
-	if err := m.CloudFoundryCLI.Push(m.AssetPath, m.Base().Configuration().Name(), 1).
-		SubscribeOnErr(m.Base().Logger().ReportingOn(logger.Error)).
-		SubscribeOnOut(cachedLogger).Sync(); err != nil {
+		infoLog.FlushTarget().Refocus(logger.Debug)
+		infoLog.FlushTarget()
 
-		m.Base().Logger().WriteString(logger.Error, bunt.Sprintf("Red{Could not push app to cf instance}"))
-		cachedLogger.Flush() // Flush to debug channel if failed
-		return errors.Wrap(err, "could not push sample app")
+		errorLog.FlushTarget().Refocus(logger.Debug)
+		errorLog.FlushTarget()
+		return err
 	}
-	cachedLogger.Clear()
-	m.Base().Logger().WriteString(logger.Info, bunt.Sprintf("SpringGreen{Pushed merkhet app successfully}"))
+
+	m.Base().Logger().WriteString(logger.Debug, bunt.Sprintf("SpringGreen{Pushed app to cf instance}"))
 	return nil
 }
 

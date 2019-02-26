@@ -94,6 +94,10 @@ type ConsoleLoggerReporter struct {
 
 }
 
+func (r *ConsoleLoggerReporter) Refocus(level logger.LogLevel) logger.ReportingWriter {
+	return r
+}
+
 func (r *ConsoleLoggerReporter) ReviewWith(reviewer logger.ReporterReviewer) logger.ReportingWriter {
 	return r
 }

@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"github.com/homeport/gonvenience/pkg/v1/bunt"
 	"github.com/homeport/watchful/internal/watchful/cfg"
+	"github.com/homeport/watchful/internal/watchful/merkhets"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
@@ -55,6 +56,7 @@ type MainService struct {
 	TerminalWidth           int
 	ConfigContent           string
 	PushedAppSampleLanguage string
+	Verbose                 bool
 }
 
 // Execute executes watchful with all outside parameters
@@ -87,7 +89,7 @@ func (e *MainService) Execute() error {
 		return er
 	}
 
-	loggerClusterConfig := logger.NewSplitPipelineConfig(config.LoggerConfiguration.PrintLoggerName, location, e.TerminalWidth, loggerConfig) // Create cluster
+	loggerClusterConfig := logger.NewSplitPipelineConfig(config.LoggerConfiguration.PrintLoggerName, location, e.TerminalWidth, loggerConfig, e.Verbose) // Create cluster
 	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout), // Create pipeline
 		loggerChannelProvider, time.Second)
 	go loggerCluster.StartListening() // Start cluster
@@ -103,36 +105,37 @@ func (e *MainService) Execute() error {
 	signal.Notify(shutdownNotifier, os.Interrupt)
 	signal.Notify(shutdownNotifier, os.Kill)
 
-	worker := cfw.NewCloudFoundryWorker(cloudFoundryLogger, cfw.NewBashCloudFoundryCLI())
+	cloudFoundryCLI := cfw.NewBashCloudFoundryCLI()
+	worker := cfw.NewCloudFoundryWorker(cloudFoundryLogger, cloudFoundryCLI)
 
-	merkhetCore := NewMerkhetService(config, loggerFactory, loggerConfig.GroupByLogger(watchfulLogger), ExportPath)
+	appProvider := merkhets.NewMutexSingleAppProvider(cloudFoundryCLI, "watchful", assetService.SampleAppPath())
+	merkhetCore := NewMerkhetService(config, loggerFactory, loggerConfig.GroupByLogger(watchfulLogger),
+		appProvider, cloudFoundryCLI) // Create merkhet core
 	if err := merkhetCore.Execute(); err != nil {
 		return err
 	}
 
 	go func() {
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets}"))
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{  ->}"))
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets\n⤳}"))
 		if err := merkhetCore.Pool.ForEach(merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
 			future.Complete(m.Install())
-			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Installed Aqua{%s}", m.Base().Configuration().Name()))
 		})).Wait().FirstError(); err != nil {
 			shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, "could not install merkhets")}
 			return
 		}
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installed merkhets}"))
 
 		NewSetupService(config.CloudFoundryConfig, watchfulLogger, taskLogger, worker).Execute() // Run setup logic
 		taskWorker := NewCloudFoundryService(config.TaskConfigurations, cloudFoundryLogger)
 
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-Connecting merkhets}"))
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{  ->}"))
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-Connecting merkhets\n⤳}"))
 		if err := merkhetCore.Pool.ForEach(merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
 			future.Complete(m.PostConnect())
-			watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Post-Connected Aqua{%s}", m.Base().Configuration().Name()))
 		})).Wait().FirstError(); err != nil {
 			shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, "could not post-connect merkhets")}
 			return
 		}
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-Connected merkhets}"))
 
 		taskIndex := 0
 		for currentTaskConfig := taskWorker.Next(); currentTaskConfig != nil; currentTaskConfig = taskWorker.Next() { // Loop over all tasks

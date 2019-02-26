@@ -71,6 +71,10 @@ func (s *SplitPipeline) Write(messages []ChannelMessage) {
 	finalOutput := make([][]string, s.config.GroupContainer.GroupCount())
 
 	for _, m := range messages {
+		if m.Level == Debug && !s.config.Verbose { // Skip messages if verbose isn't enabled
+			continue
+		}
+
 		loggerGroup := s.config.GroupContainer.GroupByLogger(m.Logger)
 		if loggerGroup == nil {
 			fmt.Fprintln(s.writer, "Received a logger with the id ", m.Logger.ID(), "that could not be sorted")
@@ -211,16 +215,17 @@ type SplitPipelineConfig struct {
 	TerminalWidth    int
 	GroupContainer   GroupContainer
 	CharacterPerPipe int
+	Verbose          bool
 }
 
 // NewBasicSplitPipelineConfig creates a new split pipeline config using the default terminal length
 func NewBasicSplitPipelineConfig(showLoggerName bool, location *time.Location, groups GroupContainer) SplitPipelineConfig {
 	w := term.GetTerminalWidth()
-	return NewSplitPipelineConfig(showLoggerName, location, w, groups)
+	return NewSplitPipelineConfig(showLoggerName, location, w, groups, false)
 }
 
 // NewSplitPipelineConfig creates a new split pipeline config
-func NewSplitPipelineConfig(showLoggerName bool, location *time.Location, tWidth int, groups GroupContainer) SplitPipelineConfig {
+func NewSplitPipelineConfig(showLoggerName bool, location *time.Location, tWidth int, groups GroupContainer, verbose bool) SplitPipelineConfig {
 	tWidth -= len(TimeFormat)
 	charactersPerPipe := tWidth/groups.GroupCount() - (len(PipelineSeparator) * (groups.GroupCount() - 1))
 
@@ -230,5 +235,6 @@ func NewSplitPipelineConfig(showLoggerName bool, location *time.Location, tWidth
 		TerminalWidth:    tWidth,
 		GroupContainer:   groups,
 		CharacterPerPipe: charactersPerPipe,
+		Verbose:          verbose,
 	}
 }

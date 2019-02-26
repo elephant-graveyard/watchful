@@ -50,6 +50,11 @@ func (e *AssetService) Cleanup() {
 	e.Logger.WriteString(logger.Info, bunt.Sprintf("Cleaned asset directory"))
 }
 
+// SampleAppPath returns the path to the sample app
+func (e *AssetService) SampleAppPath() string {
+	return filepath.Join(e.ExportPath , SampleAppSubPath)
+}
+
 // NewAssetService creates a new asset services
 func NewAssetService(sampleAppLanguage string, logger logger.Logger, ExportPath string) *AssetService {
 	return &AssetService{

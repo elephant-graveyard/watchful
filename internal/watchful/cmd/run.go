@@ -37,6 +37,9 @@ var (
 
 	// PushedAppSampleLanguage is the language in which the pushed sample app should be written
 	PushedAppSampleLanguage string
+
+	// Verbose defines if the program will output debug information
+	Verbose bool
 )
 
 // runCmd is the run command definition using cobra
@@ -50,9 +53,10 @@ var runCmd = &cobra.Command{
 // run is the method called when someone uses the watchful run command
 func run(cmd *cobra.Command, args []string) {
 	e := services.MainService{
-		TerminalWidth: TerminalWidth,
-		ConfigContent: ConfigContent,
+		TerminalWidth:           TerminalWidth,
+		ConfigContent:           ConfigContent,
 		PushedAppSampleLanguage: PushedAppSampleLanguage,
+		Verbose:                 Verbose,
 	}
 
 	if err := e.Execute(); err != nil {
@@ -69,5 +73,6 @@ func init() {
 	runCmd.PersistentFlags().StringVarP(&ConfigContent, "config", "c", "", "Provides the configuration for watchful")
 	runCmd.PersistentFlags().StringVarP(&PushedAppSampleLanguage, "language", "l", "go", "Defines in which language "+
 		"the push sample app should be written")
+	runCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Toggles whether the app is run in verbose mode")
 	rootCmd.AddCommand(runCmd)
 }

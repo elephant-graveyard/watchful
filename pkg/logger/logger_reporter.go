@@ -33,6 +33,7 @@ type ReporterReviewer func(p []byte) error
 type ReportingWriter interface {
 	Write(p []byte) (n int, err error)
 	ReviewWith(reviewer ReporterReviewer) ReportingWriter
+	Refocus(level LogLevel) ReportingWriter
 }
 
 // ReportingLoggerWriter is a simple internal implementation of the writer interface.
@@ -67,4 +68,10 @@ func (l *ReportingLoggerWriter) Write(p []byte) (n int, err error) {
 	}
 
 	return l.logger.Write(p, l.level) // Forward it
+}
+
+// Refocus refocuses the reporting logger onto the new log level
+func (l *ReportingLoggerWriter) Refocus(level LogLevel) ReportingWriter {
+	l.level = level
+	return l
 }

@@ -28,10 +28,10 @@ import (
 	"time"
 )
 
-var _ = Describe("the implemented merkhets should function correctly" , func() {
+var _ = Describe("the implemented merkhets should function correctly", func() {
 
 	var (
-		Server *MockedServer
+		Server      *MockedServer
 		MerkhetBase merkhet.Base
 	)
 
@@ -39,7 +39,7 @@ var _ = Describe("the implemented merkhets should function correctly" , func() {
 		Server = NewMockedServer()
 		Server.Start()
 
-		MerkhetBase = merkhet.NewSimpleBase(&ConsoleLogger{} , merkhet.NewFlatConfiguration("config" , 0))
+		MerkhetBase = merkhet.NewSimpleBase(&ConsoleLogger{}, merkhet.NewFlatConfiguration("config", 0))
 	})
 
 	_ = AfterEach(func() {
@@ -47,32 +47,32 @@ var _ = Describe("the implemented merkhets should function correctly" , func() {
 		Server.Server = nil
 	})
 
-	_ = It("should curl correctly" , func() {
-		Server.Route("/info" , func(w http.ResponseWriter, r *http.Request) {
+	_ = It("should curl correctly", func() {
+		Server.Route("/info", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Hello World"))
 			w.WriteHeader(http.StatusOK)
 		})
 
-		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , "")
+		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL+"/info", MerkhetBase, NewMutexSingleAppProvider(nil, "", ""))
 		Expect(curlMerkhet.Execute()).To(BeNil())
 	})
 
-	_ = It("should fail curl due to timeout" , func(done Done) {
-		Server.Route("/info" , func(w http.ResponseWriter, r *http.Request) {
+	_ = It("should fail curl due to timeout", func(done Done) {
+		Server.Route("/info", func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(1 * time.Second)
 		})
 
-		curlMerkhet := NewCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , &http.Client{} , time.Millisecond , "")
+		curlMerkhet := NewCurlMerkhet(Server.Server.URL+"/info", MerkhetBase, &http.Client{}, time.Millisecond, NewMutexSingleAppProvider(nil, "", ""))
 		Expect(curlMerkhet.Execute()).To(Not(BeNil()))
 		close(done)
-	} , 5 * 1000)
+	}, 5*1000)
 
-	_ = It("should fail curl due to wrong status code" , func(done Done) {
-		Server.Route("/info" , func(w http.ResponseWriter, r *http.Request) {
+	_ = It("should fail curl due to wrong status code", func(done Done) {
+		Server.Route("/info", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusForbidden)
 		})
 
-		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL + "/info", MerkhetBase , "")
+		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL+"/info", MerkhetBase, NewMutexSingleAppProvider(nil, "", ""))
 		Expect(curlMerkhet.Execute()).To(Not(BeNil()))
 		close(done)
 	})

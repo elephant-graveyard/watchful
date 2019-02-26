@@ -31,6 +31,7 @@ type CachedLogger interface {
 	Write(b []byte) (n int, err error)
 	Clear()
 	Flush()
+	FlushTarget() ReportingWriter
 }
 
 // ByteBufferCachedLogger is an implementation of the CachedLogger interface relying on byte buffers
@@ -50,11 +51,17 @@ func (l *ByteBufferCachedLogger) Flush() {
 	for _, message := range l.cache {
 		l.wrapped.Write([]byte(message))
 	}
+	l.Clear()
 }
 
 // Clear clears the content of the logger
 func (l *ByteBufferCachedLogger) Clear() {
 	l.cache = nil
+}
+
+// FlushTarget returns the flush target of the cached logger
+func (l *ByteBufferCachedLogger) FlushTarget() ReportingWriter {
+	return l.wrapped
 }
 
 // NewByteBufferCachedLogger creates a new cached logger that wraps the reporting writer
