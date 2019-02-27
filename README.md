@@ -43,6 +43,15 @@ make all
 ```
 ---------
 
+### Install it on your machine
+
+If you live dangerously, you can install watchful with this simply one line bash command:
+```sh
+curl -sL https://raw.githubusercontent.com/homeport/watchful/master/scripts/download-latest.sh | bash
+```
+
+---------
+
 ### Test it with Linux on your macOS system
 
 Best way is to use Docker to spin up a container:
