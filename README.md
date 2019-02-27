@@ -11,6 +11,7 @@
 A tool to measure the disruption caused by a change to a Cloud Foundry environment. The most obvious use-case would be the roll-out of an update of Cloud Foundry itself. Usually this requires some or all of the internal micro services to restart. The respective setup with means to achieve some form of high availability will step in to make sure an end-user does not notice the software maintenance. As always, you cannot always make sure there is no flicker or lost HTTP request. The main purpose of this tool is to measure the impact of a maintenance and to report the metrics to the operator. This project is highly influenced by the [uptimer tool](https://github.com/cloudfoundry/uptimer) from the Cloud Foundry community.
 
 _This project is work in progress._
+---------
 
 ## Contributing
 
@@ -31,6 +32,7 @@ Git commit messages should be meaningful and follow the rules nicely written dow
 > 1. Use the imperative mood in the subject line
 > 1. Wrap the body at 72 characters
 > 1. Use the body to explain what and why vs. how
+---------
 
 ### Running test cases and binaries generation
 
@@ -39,6 +41,7 @@ There are multiple make targets, but running `all` does everything you want in o
 ```sh
 make all
 ```
+---------
 
 ### Test it with Linux on your macOS system
 
@@ -53,31 +56,32 @@ docker run \
   --workdir /go/src/github.com/homeport/watchful \
   golang:1.11 /bin/bash
 ```
+---------
+## Commands
 
-### Git pre-commit hooks
+#### watchful run 
+``run`` is basically the main starting point for watchful and starts the watchful engine.
+It does have some flags tho, to allow CLI configuration:
 
-When working with code, it may not always be the best idea to wait for travis to throw an error if your build failed.
-To automize your development workflow, it may be a good idea to use git pre-commit hooks.
+- ``-v|--verbose``: As expected watchful comes with a verbose option. Adding this to the command call will result in
+watchful logging successful merkhet tests as well as printing detailed error logs on merkhet fails.
 
-These little snippets of code are run prior to a commit and can determine whether your commit should be accepted.
-In the case of `watchful`, a pre-commit hook could look something like this, calling both `test` and `analysis` make
-targets before a commit.
+- ``-w|--terminalWidth <intValue>``: As go may no always be able to pick up the correct terminal width, you can provide it in this
+flag. The provided values specifies the amount of characters per line in your terminal.
 
-You can install the default pre-commit hook using this command in your watchful root directory:
+- ``-l|--language <stringValue>``: If you want to use a different app runtime type, you can specify the apps 
+programming language with this tag. The default is `go`. Right now watchful supports the following languages:
+    - `go`
+    
+- ``-c|--config <stringValue>``: If you do not want to provide a file based config, this parameter also allows you
+to pass the config content directly to the CLI, removing the need for a physical copy of it on the disk.ç
 
-```sh
-cat <<EOS | cat > .git/hooks/pre-commit && chmod a+rx .git/hooks/pre-commit
-#!/usr/bin/env bash
-
-set -euo pipefail
-make analysis test
-
-EOS
-```
-
+---------
 ## Configuration
 Watchful is obviously highly configurable to fit and test the cloud foundry instance as well as possible.
-A sample configuration can also be found here: [config-sample.yml](https://github.com/homeport/watchful/blob/master/config-model.yml)
+A sample configuration can also be found here: 
+[config-sample.yml](https://github.com/homeport/watchful/blob/master/config-model.yml)
+The config file must be located under `./config.yaml`.
 The configuration is generally split into four sub-parts:
 
 #### Cloud Foundry Configuration ``cf``
@@ -160,6 +164,28 @@ Eg: ``UTC``
 
 - ``show-logger-name``: If this boolean is set to true, the logger name will be printed to the console. 
 This is generally advised to enable as it allows deeper error tracing, but may be disabled in certain situations.  
+---------
+
+### Git pre-commit hooks
+
+When working with code, it may not always be the best idea to wait for travis to throw an error if your build failed.
+To automize your development workflow, it may be a good idea to use git pre-commit hooks.
+
+These little snippets of code are run prior to a commit and can determine whether your commit should be accepted.
+In the case of `watchful`, a pre-commit hook could look something like this, calling both `test` and `analysis` make
+targets before a commit.
+
+You can install the default pre-commit hook using this command in your watchful root directory:
+
+```sh
+cat <<EOS | cat > .git/hooks/pre-commit && chmod a+rx .git/hooks/pre-commit
+#!/usr/bin/env bash
+
+set -euo pipefail
+make analysis test
+
+EOS
+```
 
 ## License
 
