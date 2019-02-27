@@ -50,6 +50,8 @@ import (
 // Scale will scale the app instance to the provided amount
 //
 // RecentLogs returns a command promise that returns the recent logs of the app. This w
+//
+// Version executes the version command
 type CloudFoundryCLI interface {
 	API(apiEndpoint string, validateSSL bool) CommandPromise
 	CreateOrganization(name string) CommandPromise
@@ -63,6 +65,7 @@ type CloudFoundryCLI interface {
 	Scale(name string, instances int) CommandPromise
 	RecentLogs(name string) CommandPromise
 	StreamLogs(name string) CommandPromise
+	Version() CommandPromise
 }
 
 // BashCloudFoundryCLI is a cli runner that relies on executing bash commands.
@@ -133,6 +136,11 @@ func (b *BashCloudFoundryCLI) RecentLogs(name string) CommandPromise {
 // StreamLogs opens a stream of logs. Note that this command promise will need a timeout assigned
 func (b *BashCloudFoundryCLI) StreamLogs(name string) CommandPromise {
 	return createCFCommandPromise(fmt.Sprintf("logs %s", name))
+}
+
+// Version executes the version command
+func (b *BashCloudFoundryCLI) Version() CommandPromise {
+	return createCFCommandPromise("version")
 }
 
 // SplitParameterString splits the string into a slice of parameters

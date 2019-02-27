@@ -116,7 +116,10 @@ func (e *MainService) Execute() error {
 	}
 
 	go func() {
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets\n⤳}"))
+		watchfulLogger.WriteString(logger.Info , bunt.Sprintf("Aqua{Using CloudFoundryCLI version:⤳}"))
+		cloudFoundryCLI.Version().SubscribeOnOut(watchfulLogger.ReportingOn(logger.Info)).Sync()
+
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets⤳\n}"))
 		if err := merkhetCore.Pool.ForEach(merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
 			future.Complete(m.Install())
 		})).Wait().FirstError(); err != nil {
@@ -128,7 +131,7 @@ func (e *MainService) Execute() error {
 		NewSetupService(config.CloudFoundryConfig, watchfulLogger, taskLogger, worker).Execute() // Run setup logic
 		taskWorker := NewCloudFoundryService(config.TaskConfigurations, cloudFoundryLogger)
 
-		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-Connecting merkhets\n⤳}"))
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Post-Connecting merkhets⤳\n}"))
 		if err := merkhetCore.Pool.ForEach(merkhet.ConsumeAsync(func(m merkhet.Merkhet, future merkhet.Future) {
 			future.Complete(m.PostConnect())
 		})).Wait().FirstError(); err != nil {

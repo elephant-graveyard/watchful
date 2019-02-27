@@ -75,6 +75,92 @@ make analysis test
 EOS
 ```
 
+## Configuration
+Watchful is obviously highly configurable to fit and test the cloud foundry instance as well as possible.
+A sample configuration can also be found here: [config-sample.yml](https://github.com/homeport/watchful/blob/master/config-model.yml)
+The configuration is generally split into four sub-parts:
+
+#### Cloud Foundry Configuration ``cf``
+Found under the yaml node ``cf``, the cloud foundry configuration hosts following values:
+- ``domain``: The domain node defines the cloud foundry domain end-point, under which routes will be available.
+Please provide the domain including the scheme and any necessary ports, eg: ``https://sample-cluster.foo.com``
+
+- ``api-endpoint``: The API-Endpoint node specifies the cloud foundry endpoint against watchful can execute setup
+commands. This will usually be your domain with the prefix ``api``, eg: `https://api.sample-cluster.foo.com`
+
+- ``skip-ssl-validation``: This boolean value will simply define whether watchful will use SSL validation when
+authenticating against the cloud foundry cluster. eg: ```true```
+
+- ``username``: The username simply specifies the username used to authenticate against the cloud foundry instance.
+When connecting with an API-Key, this username could be for example ``apikey``
+
+- ``password``: The password specifies the passphrase used with the given username to authenticate against the cloud
+foundry instance: Eg: ``aHR0cHM6Ly9nb28uZ2wvUGpYamR6``
+
+#### Task Configuration ``tasks``
+Found under the yaml node ``tasks``, the tasks configuration is a list of task nodes that define the update tasks
+watchful will run against the cloud foundry instance. They are the equivalent to the ``while`` part of the uptimer
+config
+
+Each of the task nodes has the following attributes that you can configure:
+- ``cmd``: This defines the base command used to execute the command. If you are executing a bash script, this will
+usually be ``/bin/bash``
+
+- ``args``: This node is a string list and defines the arguments passed to the command specified in ``cmd``.
+When passing a bash script to a ``/bin/bash`` cmd this may look like this:
+```yaml
+ - -c
+ -  |
+   #!/bin/bash
+
+   set -euo pipefail
+
+   echo "Hello, World!"
+   ping github.com
+```  
+This configuration would print ```Hello World``` as well as ping ``github.com``
+
+- ``merkhet-whitelist``: This yaml node can be configured for each task and is a string list.
+If defined as a node, only the merkhets with the given name will be monitoring the cloud foundry for the time of your
+task running. This may be helpful if you certainly know that the task will disrupt a feature of the cluster, but don't
+want that to corrupt the merkhet results.
+
+- ``merkhet-blacklist``: This yaml node will only be active if the ``merkhet-whitelist`` has not been configured. 
+If defined every merkhet will be monitoring, except the ones listed on this blacklist. This node is again a list of 
+strings.
+
+#### Merkhet Configuration ``merkhets``
+Found under the yaml node ``merkhets`` this list of yaml nodes defines the general set of running merkhets. 
+In here you can configure the threshold for merkhets or deactivate them completely.
+If you do not configure a merkhets, it will not be used at all by watchful.
+
+A node inside the ``merkhets`` node can be configured like this:
+
+- ``name``: The name simply defines what merkhet implementation your configuration targets. Currently implemented names
+are:
+ 
+    - app-pushability
+    - http-availability
+    - cf-log-functionality
+    - cf-recent-log-functionality
+
+- ``threshold``: The threshold defines how many of the merkhet tests are allowed to fail. 
+This threshold can be either provided as a flat number (eg: ``10``) or as a percentage (eg: ``50%``)
+
+- ``heartbeat``: This yaml node overwrites the default heartbeat of the merkhet.
+You **should not modify** this as long as you don't have a valid use case for it as it may mess with the efficiency of 
+watchful. It is of the typ string and needs a valid time duration specifier. 
+Eg: ``1s``, ``500ms`` or ``1m30s``
+
+#### Logger Configuration ``logger-config``
+Found under the yaml node ``logger-config`` the loggers used in watchful can be configured as well. 
+
+- ``time-location``: This string simply specifies the time zone in which the current system time will be rendered. 
+Eg: ``UTC``
+
+- ``show-logger-name``: If this boolean is set to true, the logger name will be printed to the console. 
+This is generally advised to enable as it allows deeper error tracing, but may be disabled in certain situations.  
+
 ## License
 
 Licensed under [MIT License](https://github.com/homeport/watchful/blob/master/LICENSE)

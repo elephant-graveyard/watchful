@@ -1,10 +1,8 @@
 ---
 cf:
   domain: https://domain.com
-  api-endpoint: api.domain.com
+  api-endpoint: https://api.domain.com
   skip-ssl-validation: true
-  custom-cli-parameters:
-    - --verbose
   username: username
   password: password
 
@@ -19,10 +17,13 @@ tasks:
 
         echo "Hello, World!"
         ping -c 100 github.com
+    merkhet-whitelist:
+      - app-pushability
 
 merkhets:
   - name: app-pushability
     threshold: '3%'
+    heartbeat: 1s
   - name: http-availability
     threshold: '10'
   - name: cf-log-functionality
