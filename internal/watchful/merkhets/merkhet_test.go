@@ -39,7 +39,7 @@ var _ = Describe("the implemented merkhets should function correctly", func() {
 		Server = NewMockedServer()
 		Server.Start()
 
-		MerkhetBase = merkhet.NewSimpleBase(&ConsoleLogger{}, merkhet.NewFlatConfiguration("config", 0))
+		MerkhetBase = merkhet.NewSimpleBase(&DevNullLogger{}, merkhet.NewFlatConfiguration("config", 0))
 	})
 
 	_ = AfterEach(func() {
@@ -49,8 +49,8 @@ var _ = Describe("the implemented merkhets should function correctly", func() {
 
 	_ = It("should curl correctly", func() {
 		Server.Route("/info", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("Hello World"))
 			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Hello World"))
 		})
 
 		curlMerkhet := NewDefaultCurlMerkhet(Server.Server.URL+"/info", MerkhetBase, NewMutexSingleAppProvider(nil, "", ""))

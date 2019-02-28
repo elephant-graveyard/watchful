@@ -54,3 +54,16 @@ func (p *PipelineMock) Observer(o PipelineObserver) {
 func (p *PipelineMock) Location() *time.Location {
 	return time.Local
 }
+
+// DevNullLogger is a simple non recoding logger that discards all content
+type DevNullLogger struct {
+}
+
+func (d *DevNullLogger) Write(p []byte) (n int, err error) {
+	return 0 , nil
+}
+
+func NewDevNullLogger() *DevNullLogger {
+	return &DevNullLogger{}
+}
+
