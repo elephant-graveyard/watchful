@@ -28,10 +28,13 @@ package logger
 // This will block the executing go routine until a message is present in the channel
 //
 // Channel() Returns the actual wrapped channel instance that is being provided
+//
+// Close will close the channel provider
 type ChannelProvider interface {
 	Push(message ChannelMessage)
 	Read() ChannelMessage
 	Channel() chan ChannelMessage
+	Close()
 }
 
 // SimpleChannelProvider is a basic struct base implementation of the of ChannelProvider interface
@@ -53,6 +56,11 @@ func (c *SimpleChannelProvider) Read() ChannelMessage {
 // Channel returns the channel this provider wraps
 func (c *SimpleChannelProvider) Channel() chan ChannelMessage {
 	return c.channel
+}
+
+// Close closes the channel provider
+func (c *SimpleChannelProvider) Close() {
+	close(c.channel)
 }
 
 // NewChannelProvider returns a channel provider that wraps the passed channel instance

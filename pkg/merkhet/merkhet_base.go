@@ -22,6 +22,7 @@ package merkhet
 
 import (
 	"github.com/homeport/watchful/pkg/logger"
+	"sync"
 )
 
 // Base represents a merkhet base which contains the values every merkhet needs
@@ -49,16 +50,23 @@ type SimpleBase struct {
 	ConfigurationReference Configuration
 	SuccessfulRuns         int
 	FailedRun              int
+	Lock                   *sync.Mutex
 }
 
 // NewSimpleBase creates a new basic simple base
 func NewSimpleBase(loggerReference logger.Logger, configurationReference Configuration) *SimpleBase {
-	return NewSetSimpleBase(loggerReference , configurationReference, 0 ,0)
+	return NewSetSimpleBase(loggerReference, configurationReference, 0, 0)
 }
 
 // NewSetSimpleBase creates a new simple base with setting failed and successful runs
 func NewSetSimpleBase(loggerReference logger.Logger, configurationReference Configuration, successfulRuns int, failedRun int) *SimpleBase {
-	return &SimpleBase{LoggerReference: loggerReference, ConfigurationReference: configurationReference, SuccessfulRuns: successfulRuns, FailedRun: failedRun}
+	return &SimpleBase{
+		LoggerReference:        loggerReference,
+		ConfigurationReference: configurationReference,
+		SuccessfulRuns:         successfulRuns,
+		FailedRun:              failedRun,
+		Lock:                   &sync.Mutex{},
+	}
 }
 
 // Logger returns the logger reference
@@ -73,16 +81,22 @@ func (b *SimpleBase) Configuration() Configuration {
 
 // RecordSuccessfulRun records a successful run
 func (b *SimpleBase) RecordSuccessfulRun() {
+	defer b.Lock.Unlock()
+
+	b.Lock.Lock()
 	b.SuccessfulRuns++
 }
 
 // RecordFailedRun records a failed run
 func (b *SimpleBase) RecordFailedRun() {
+	defer b.Lock.Unlock()
+
+	b.Lock.Lock()
 	b.FailedRun++
 }
 
 // NewResultSet builds a new result set instance
 func (b *SimpleBase) NewResultSet() Result {
 	totalRuns := b.FailedRun + b.SuccessfulRuns
-	return NewMerkhetResult(totalRuns, b.FailedRun, b.Configuration().ValidRun(totalRuns, b.FailedRun))
+	return NewMerkhetResult(b.SuccessfulRuns, b.FailedRun, b.Configuration().ValidRun(totalRuns, b.FailedRun))
 }

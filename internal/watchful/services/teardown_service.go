@@ -18,38 +18,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package services
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"time"
+	"github.com/homeport/watchful/pkg/cfw"
+	"github.com/homeport/watchful/pkg/logger"
 )
 
-func main() {
-	go spamLog(time.Second)
-
-	fmt.Println("Starting watchful sample app for merkhet!")
-	http.HandleFunc("/", renderIndexPage)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
+// TeardownService tears down the cf test instance
+type TeardownService struct {
+	WatchfulLogger logger.Logger
+	Worker         cfw.CloudFoundryWorker
 }
 
-func renderIndexPage(out http.ResponseWriter, in *http.Request) {
-	out.Header().Add("content-type", "application/json")
-	out.WriteHeader(200)
-
-	_, _ = fmt.Fprint(out, `{"totally-random-number-without-any-meaning":949207500}`)
+// NewTeardownService creates a new teardown task
+func NewTeardownService(watchfulLogger logger.Logger, worker cfw.CloudFoundryWorker) *TeardownService {
+	return &TeardownService{WatchfulLogger: watchfulLogger, Worker: worker}
 }
 
-func spamLog(iteration time.Duration) {
-	ticker := time.NewTicker(iteration)
-	for {
-		select {
-		case t := <-ticker.C:
-			fmt.Printf("Timestamp{%d}\n", t.Unix())
-		}
+// Execute executes a teardown
+func (e *TeardownService) Execute() error {
+	e.WatchfulLogger.WriteString(logger.Info, "Tearing down test environment")
+	if err := e.Worker.TeardownTestEnvironment(); err != nil {
+		e.WatchfulLogger.WriteString(logger.Error, "Could not teardown test environment")
+		return err
 	}
+
+	return nil
 }

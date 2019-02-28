@@ -28,6 +28,16 @@ import (
 
 // CloudFoundryCLI is a utility object that can create cli commands for the cloud foundry cli
 //
+// API targets a specific api endpoint within the cf cli
+//
+// CreateOrganization creates a new organization on the cloud foundry instance
+//
+// DeleteOrganization deletes a organization on the cloud foundry instance
+//
+// CreateSpace creates a new space on the cloud foundry instance
+//
+// DeleteSpace deletes a space on the cloud foundry instance
+//
 // Auth creates a CommandPromise that will try to authenticate against the cloud foundry instance
 //
 // Target targets the given organization instance. This will fail if the cli is not authenticated
@@ -38,12 +48,24 @@ import (
 // Delete will delete the provided app from the selected space
 //
 // Scale will scale the app instance to the provided amount
+//
+// RecentLogs returns a command promise that returns the recent logs of the app. This w
+//
+// Version executes the version command
 type CloudFoundryCLI interface {
-	Auth(endpoint string, username string, password string) CommandPromise
+	API(apiEndpoint string, validateSSL bool) CommandPromise
+	CreateOrganization(name string) CommandPromise
+	DeleteOrganization(name string) CommandPromise
+	CreateSpace(org string, name string) CommandPromise
+	DeleteSpace(org string, name string) CommandPromise
+	Auth(username string, password string) CommandPromise
 	Target(organization string, space string) CommandPromise
 	Push(path string, name string, instances int) CommandPromise
 	Delete(name string) CommandPromise
 	Scale(name string, instances int) CommandPromise
+	RecentLogs(name string) CommandPromise
+	StreamLogs(name string) CommandPromise
+	Version() CommandPromise
 }
 
 // BashCloudFoundryCLI is a cli runner that relies on executing bash commands.
@@ -52,9 +74,37 @@ type CloudFoundryCLI interface {
 type BashCloudFoundryCLI struct {
 }
 
+// API targets a specific api endpoint within the cf cli
+func (b *BashCloudFoundryCLI) API(apiEndpoint string, validateSSL bool) CommandPromise {
+	if !validateSSL {
+		return createCFCommandPromise(fmt.Sprintf("api --skip-ssl-validation %s", apiEndpoint))
+	}
+	return createCFCommandPromise(fmt.Sprintf("api %s", apiEndpoint))
+}
+
+// CreateOrganization creates a new organization on the cloud foundry instance
+func (b *BashCloudFoundryCLI) CreateOrganization(name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("create-org %s", name))
+}
+
+// DeleteOrganization deletes a organization on the cloud foundry instance
+func (b *BashCloudFoundryCLI) DeleteOrganization(name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("delete-org -f %s", name))
+}
+
+// CreateSpace creates a new space on the cloud foundry instance
+func (b *BashCloudFoundryCLI) CreateSpace(org string, name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("create-space -o %s %s", org, name))
+}
+
+// DeleteSpace deletes a space on the cloud foundry instance
+func (b *BashCloudFoundryCLI) DeleteSpace(org string, name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("delete-space -o %s -f %s", org, name))
+}
+
 // Auth creates a CommandPromise that will try to authenticate against the cloud foundry instance
-func (b *BashCloudFoundryCLI) Auth(endpoint string, username string, password string) CommandPromise {
-	return createCFCommandPromise(fmt.Sprintf("login -a %s -u %s -p %s", endpoint, username, password))
+func (b *BashCloudFoundryCLI) Auth(username string, password string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("auth %s %s", username, password))
 }
 
 // Target targets the given organization instance
@@ -78,9 +128,29 @@ func (b *BashCloudFoundryCLI) Scale(name string, instances int) CommandPromise {
 	return createCFCommandPromise(fmt.Sprintf("scale %s -i %d", name, instances))
 }
 
+// RecentLogs returns a command promise that returns the recent logs of the app
+func (b *BashCloudFoundryCLI) RecentLogs(name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("logs --recent %s", name))
+}
+
+// StreamLogs opens a stream of logs. Note that this command promise will need a timeout assigned
+func (b *BashCloudFoundryCLI) StreamLogs(name string) CommandPromise {
+	return createCFCommandPromise(fmt.Sprintf("logs %s", name))
+}
+
+// Version executes the version command
+func (b *BashCloudFoundryCLI) Version() CommandPromise {
+	return createCFCommandPromise("version")
+}
+
 // SplitParameterString splits the string into a slice of parameters
 func SplitParameterString(parameter string) []string {
 	return strings.Split(parameter, " ")
+}
+
+// NewBashCloudFoundryCLI creates a new bash based cloud foundry cli
+func NewBashCloudFoundryCLI() *BashCloudFoundryCLI {
+	return &BashCloudFoundryCLI{}
 }
 
 // createCFCommandPromise simply creates a new command promise executing cf plus the parameter list

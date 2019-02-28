@@ -21,11 +21,12 @@
 package merkhet
 
 import (
+	"sync"
 	"time"
 )
 
 // HeartbeatConsumer consumes a single heartbeat
-type HeartbeatConsumer func(heartbeat Heartbeat)
+type HeartbeatConsumer func(heartbeat Heartbeat) (err error)
 
 // Pool contains a map of registered merkhets as well as manages them
 //
@@ -41,19 +42,22 @@ type HeartbeatConsumer func(heartbeat Heartbeat)
 // ForEachHeartbeat executes something for each heartbeat instance
 //
 // Shutdown shuts the pool and it's heartbeats down
+//
+// TaskWaitGroup returns the wait group responsible for tasks
 type Pool interface {
 	StartWorker(m Merkhet, duration time.Duration, heartbeat Consumer)
 	StartHeartbeats()
 	Size() uint
 	BeatingHearts() (heartbeats []Heartbeat)
-	ForEach(consumer Consumer)
-	ForEachHeartbeat(consumer HeartbeatConsumer)
+	ForEach(consumer Consumer) (output ConsumerResult)
 	Shutdown()
+	TaskWaitGroup() *sync.WaitGroup
 }
 
 // SimplePool is a basic implementation of the MerkhetPool interface
 type SimplePool struct {
-	heartbeats []Heartbeat
+	heartbeats             []Heartbeat
+	TaskWaitGroupReference *sync.WaitGroup
 }
 
 // StartWorker pushes a new merkhet instance into the Pool and starts the worker
@@ -68,7 +72,9 @@ func (s *SimplePool) StartWorker(m Merkhet, duration time.Duration, heartbeat Co
 // StartHeartbeats starts all the heartbeats registered with the running workers
 func (s *SimplePool) StartHeartbeats() {
 	for _, beat := range s.heartbeats {
-		beat.StartBeating()
+		if !beat.IsBeating() {
+			beat.StartBeating()
+		}
 	}
 }
 
@@ -80,37 +86,49 @@ func (s *SimplePool) Size() uint {
 // BeatingHearts returns the currently beating hearts
 func (s *SimplePool) BeatingHearts() (heartbeats []Heartbeat) {
 	result := make([]Heartbeat, 0)
-	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
-		if heartbeat.IsBeating() {
-			result = append(result, heartbeat)
+	for _, h := range s.heartbeats {
+		if h.IsBeating() {
+			result = append(result, h)
 		}
-	})
+	}
 	return result
 }
 
 // ForEach executes the provided function for each Merkhet instance currently managed by the pool
-func (s *SimplePool) ForEach(consumer Consumer) {
-	s.ForEachHeartbeat(func(heartbeat Heartbeat) {
-		heartbeat.Worker().ControllerChannel() <- consumer
-	})
-}
+func (s *SimplePool) ForEach(c Consumer) (output ConsumerResult) {
+	result := NewWaitGroupConsumerResult()
 
-// ForEachHeartbeat executes something for each heartbeat instance
-func (s *SimplePool) ForEachHeartbeat(consumer HeartbeatConsumer) {
+	c.Notify(s.TaskWaitGroup())
+	c.Notify(result.WaitGroup)
+
 	for _, beat := range s.heartbeats {
-		consumer(beat)
+		future := NewFuture()
+		result.AddFuture(future)
+
+		c.Consume(beat.Worker().Merkhet(), future)
 	}
+
+	return result
 }
 
 // Shutdown shuts the pool and it's heartbeats down
 func (s *SimplePool) Shutdown() {
+	s.TaskWaitGroup().Wait()
+
 	for _, beat := range s.heartbeats {
-		close(beat.Worker().ControllerChannel())
+		close(beat.Worker().ControllerChannel().C)
 		beat.StopBeating()
 	}
 }
 
+// TaskWaitGroup returns the wait group responsible for tasks
+func (s *SimplePool) TaskWaitGroup() *sync.WaitGroup {
+	return s.TaskWaitGroupReference
+}
+
 // NewPool returns a fresh empty instance of the go container
 func NewPool() *SimplePool {
-	return &SimplePool{}
+	return &SimplePool{
+		TaskWaitGroupReference: &sync.WaitGroup{},
+	}
 }

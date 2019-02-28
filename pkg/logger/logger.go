@@ -20,6 +20,11 @@
 
 package logger
 
+import (
+	"fmt"
+	"strings"
+)
+
 // LogLevel describes the log level type a logger can write with
 type LogLevel byte
 
@@ -29,6 +34,14 @@ const (
 
 	// Error represents the logging level info
 	Error
+
+	// Debug defines a channel that will only be printed if the verbose option is enabled
+	Debug
+)
+
+const (
+	// Prefix are all the characters that are added on top of the name
+	Prefix = "[%s] "
 )
 
 // Logger defines an observable logger
@@ -36,6 +49,8 @@ const (
 // ChannelProvider returns the channel provider this Cluster uses
 //
 // Name returns the name of the logger
+//
+// AsPrefix returns the logger name as a prefix
 //
 // ID returns the id of the logger
 //
@@ -47,6 +62,7 @@ const (
 type Logger interface {
 	ChannelProvider() ChannelProvider
 	Name() string
+	AsPrefix() string
 	ID() int
 	Write(p []byte, level LogLevel) (n int, err error)
 	WriteString(level LogLevel, s string) error
@@ -71,6 +87,11 @@ func (l *SimpleChanneledLogger) Name() string {
 	return l.name
 }
 
+// AsPrefix returns the logger name as a prefix. If the name is too long. It will take a substring of the name
+func (l *SimpleChanneledLogger) AsPrefix() string {
+	return fmt.Sprintf(Prefix, l.Name())
+}
+
 // ID returns the id the logger instance was assigned on creation
 func (l *SimpleChanneledLogger) ID() int {
 	return l.id
@@ -78,7 +99,14 @@ func (l *SimpleChanneledLogger) ID() int {
 
 // Write simply stores the written string inside the buffer
 func (l *SimpleChanneledLogger) Write(b []byte, level LogLevel) (int, error) {
-	l.ChannelProvider().Push(NewChannelMessage(l, b, level))
+	fullLine := strings.Replace(string(b), "\r", "\n", -1)
+	fullLine = strings.Replace(fullLine, "\t", "", -1) // For now we will just not allow \t
+	fullLine = strings.Trim(fullLine, "\n")
+	multipleLines := strings.Split(fullLine, "\n")
+
+	for _, line := range multipleLines {
+		l.ChannelProvider().Push(NewChannelMessage(l, []byte(line), level))
+	}
 	return len(b), nil
 }
 
@@ -90,5 +118,5 @@ func (l *SimpleChanneledLogger) WriteString(level LogLevel, s string) error {
 
 // ReportingOn creates a new writer that reports every written byte slice to the logger on the given log level
 func (l *SimpleChanneledLogger) ReportingOn(level LogLevel) ReportingWriter {
-	return NewSimpleLoggerReporter(l , level)
+	return NewSimpleLoggerReporter(l, level)
 }

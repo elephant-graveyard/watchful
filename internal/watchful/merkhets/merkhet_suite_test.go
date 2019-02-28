@@ -61,6 +61,10 @@ type ConsoleLogger struct {
 
 }
 
+func (l *ConsoleLogger) AsPrefix() string {
+	return "[test]"
+}
+
 func (l *ConsoleLogger) ChannelProvider() logger.ChannelProvider {
 	return nil
 }
@@ -88,6 +92,10 @@ func (l *ConsoleLogger) WriteString(level logger.LogLevel, s string) error {
 
 type ConsoleLoggerReporter struct {
 
+}
+
+func (r *ConsoleLoggerReporter) Refocus(level logger.LogLevel) logger.ReportingWriter {
+	return r
 }
 
 func (r *ConsoleLoggerReporter) ReviewWith(reviewer logger.ReporterReviewer) logger.ReportingWriter {

@@ -28,30 +28,38 @@ package merkhet
 // FailedRuns returns the total amount of failed runs the merkhet instance that build
 // this result produced
 //
+// TotalRuns returns the total amount of runs this merkhet had
+//
 // Valid returns if the result was marked valid by the Merkhet instance that build it
 type Result interface {
 	SuccessfulRuns() int
 	FailedRuns() int
+	TotalRuns() int
 	Valid() bool
 }
 
 // SimpleResult is a small implementation of the Result interface
 type SimpleResult struct {
-	totalRuns  int
-	totalFails int
+	successful int
+	fails      int
 	valid      bool
 }
 
 // SuccessfulRuns returns the total amount of runs the merkhet instance ran
 // at the time this result instance was created
 func (s *SimpleResult) SuccessfulRuns() int {
-	return s.totalRuns
+	return s.successful
 }
 
 // FailedRuns returns the total amount of failed runs the merkhet instance that build
 // this result produced
 func (s *SimpleResult) FailedRuns() int {
-	return s.totalFails
+	return s.fails
+}
+
+// TotalRuns returns the total amount of runs this merkhet had
+func (s *SimpleResult) TotalRuns() int {
+	return s.successful + s.fails
 }
 
 // Valid returns if the result was marked valid by the Merkhet instance that build it
@@ -60,10 +68,10 @@ func (s *SimpleResult) Valid() bool {
 }
 
 // NewMerkhetResult creates a new instance of the MerkhetResult interface
-func NewMerkhetResult(totalRuns int, failedRuns int, valid bool) *SimpleResult {
+func NewMerkhetResult(successfulRuns int, failedRuns int, valid bool) *SimpleResult {
 	return &SimpleResult{
-		totalRuns:  totalRuns,
-		totalFails: failedRuns,
+		successful: successfulRuns,
+		fails:      failedRuns,
 		valid:      valid,
 	}
 }

@@ -20,26 +20,44 @@
 
 package merkhet
 
-// ConsumerMethod describes the type of the methods allowed to consumer a merkhet
-type ConsumerMethod func(merkhet Merkhet, relay ControllerChannel)
+import (
+	"sync"
+)
+
+// Method describes the type of the methods allowed to consumer a merkhet
+type Method func(m Merkhet, future Future)
 
 // Consumer defines an object that can consume a merkhet instance
 type Consumer interface {
-	Consume(merkhet Merkhet, relay ControllerChannel)
+	Consume(merkhet Merkhet, future Future)
+	Notify(group *sync.WaitGroup) Consumer
 }
 
 // SyncedConsumer is a consumer that executes the consuming method in sync with the current go routine
 type SyncedConsumer struct {
-	consumer ConsumerMethod
+	consumer  Method
+	notifiers []*sync.WaitGroup
 }
 
 // Consume calls the passed consumer method in the current go routine
-func (s *SyncedConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
-	s.consumer(merkhet, relay)
+func (s *SyncedConsumer) Consume(merkhet Merkhet, future Future) {
+	for _, group := range s.notifiers {
+		group.Add(1)
+	}
+	s.consumer(merkhet, future)
+	for _, group := range s.notifiers {
+		group.Done()
+	}
+}
+
+// Notify adds a new notifier
+func (s *SyncedConsumer) Notify(group *sync.WaitGroup) Consumer {
+	s.notifiers = append(s.notifiers, group)
+	return s
 }
 
 // ConsumeSync creates a synced Consumer
-func ConsumeSync(m ConsumerMethod) Consumer {
+func ConsumeSync(m Method) *SyncedConsumer {
 	return &SyncedConsumer{
 		consumer: m,
 	}
@@ -47,17 +65,31 @@ func ConsumeSync(m ConsumerMethod) Consumer {
 
 // AsyncConsumer is a consumer that executes the consuming method on a new go routine
 type AsyncConsumer struct {
-	consumer ConsumerMethod
+	consumer *SyncedConsumer
 }
 
 // Consume calls the passed consumer method in a new go routine
-func (a *AsyncConsumer) Consume(merkhet Merkhet, relay ControllerChannel) {
-	go a.consumer(merkhet, relay)
+func (a *AsyncConsumer) Consume(merkhet Merkhet, future Future) {
+	for _, group := range a.consumer.notifiers {
+		group.Add(1)
+	}
+	go func() {
+		a.consumer.consumer(merkhet, future)
+		for _, group := range a.consumer.notifiers {
+			group.Done()
+		}
+	}()
 }
 
-// ConsumeAsync creates a async Consumer
-func ConsumeAsync(m ConsumerMethod) Consumer {
+// Notify adds a new notifier
+func (a *AsyncConsumer) Notify(group *sync.WaitGroup) Consumer {
+	a.consumer.Notify(group)
+	return a
+}
+
+// ConsumeAsync creates a async Consumer. These consumers will never return an error, so make sure to catch it otherwise
+func ConsumeAsync(m Method) *AsyncConsumer {
 	return &AsyncConsumer{
-		consumer: m,
+		consumer: ConsumeSync(m),
 	}
 }

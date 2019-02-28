@@ -21,9 +21,17 @@
 package cfw
 
 import (
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
+	"time"
+)
+
+var (
+	// ErrorCommandPromiseTimeout is the error thrown if the command promise timed out
+	ErrorCommandPromiseTimeout = fmt.Errorf("the command promise timed out")
 )
 
 // CommandPromise is a basic promise interface that promises a commands execution future
@@ -34,6 +42,8 @@ import (
 // SubscribeOnErr subscribes the provided writer to the error stream of the command promise
 // This will overwrite previous subscriber
 //
+// Timeout adds a timeout to the command promise. The default is -1, which represents no timeout
+//
 // Sync executes the command in sync to the go routine it was called in, returning the result
 //
 // Async executes the command in a new go routine, calls the passed callback after execution and returns a wait-group
@@ -41,6 +51,8 @@ import (
 type CommandPromise interface {
 	SubscribeOnOut(writer io.Writer) CommandPromise
 	SubscribeOnErr(writer io.Writer) CommandPromise
+	Environment(key string, value string) CommandPromise
+	Timeout(duration time.Duration) CommandPromise
 	Sync() error
 	Async(subscriber func(e error)) *sync.WaitGroup
 }
@@ -57,7 +69,8 @@ func NewSimpleCommandPromise(command *exec.Cmd) *SimpleCommandPromise {
 
 // SimpleCommandPromise is an implementation of the CommandPromise interface that is able to run multiple commands
 type SimpleCommandPromise struct {
-	commands []*exec.Cmd
+	commands     []*exec.Cmd
+	TimeoutValue time.Duration
 }
 
 // SubscribeOnOut will subscribe the writer instance to the command promise
@@ -76,16 +89,45 @@ func (c *SimpleCommandPromise) SubscribeOnErr(writer io.Writer) CommandPromise {
 	return c
 }
 
+// Environment adds a new environment variable
+func (c *SimpleCommandPromise) Environment(key string, value string) CommandPromise {
+	for _, c := range c.commands {
+		if len(c.Env) < 1 {
+			c.Env = os.Environ() // Store the default env anyway !
+		}
+		c.Env = append(c.Env, key+"="+value)
+	}
+	return c
+}
+
+// Timeout adds a timeout to the command promise. The default is -1, which represents no timeout
+func (c *SimpleCommandPromise) Timeout(duration time.Duration) CommandPromise {
+	c.TimeoutValue = duration
+	return c
+}
+
 // Sync executes the command promise and returns the result
 // The command will be executed on the same go routine
 func (c *SimpleCommandPromise) Sync() error {
-	for _, c := range c.commands {
-		e := c.Run()
-		if e != nil {
-			return e
-		}
+	done := make(chan error)
+	if c.TimeoutValue > 0 { // Start timeout task
+		go func() {
+			<-time.NewTimer(c.TimeoutValue).C
+			done <- ErrorCommandPromiseTimeout
+		}()
 	}
-	return nil
+
+	go func() { // Start command tasks
+		for _, c := range c.commands {
+			e := c.Run()
+			if e != nil {
+				done <- e
+			}
+		}
+		done <- nil
+	}()
+
+	return <-done // We don't have to close the channel, it will be collected by the gc once the timeout value is done too
 }
 
 // Async executes the command promise and returns the result to the passed subscriber

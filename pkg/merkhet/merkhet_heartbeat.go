@@ -60,10 +60,12 @@ func (t *TickedHeartbeat) StartBeating() {
 
 	t.Ticker = time.NewTicker(t.Interval)
 	go func() {
+		t.Consumer.Consume(t.Worker().Merkhet(), NewFuture())
+
 		for {
 			select {
 			case <-t.Ticker.C:
-				t.Consumer.Consume(t.Worker().Merkhet(), t.Worker().ControllerChannel())
+				t.Consumer.Consume(t.Worker().Merkhet(), NewFuture())
 			case <-t.closure:
 				return
 			}

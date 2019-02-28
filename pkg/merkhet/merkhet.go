@@ -20,6 +20,11 @@
 
 package merkhet
 
+import (
+	"fmt"
+	"strconv"
+)
+
 // Merkhet defines a runnable measurement task that can be executed during the Cloud Foundry maintenance
 //
 // Install installs the merkhet instance. This method call will be used to setup necessary dependencies of the merkhet
@@ -50,9 +55,12 @@ type Merkhet interface {
 //
 // ValidRun returns whether the provided total relative to the fails is still considered a viable run
 // The behaviour of this method is heavily reliant on the implementation
+//
+// ThresholdAsString returns the threshold as a string
 type Configuration interface {
 	Name() string
 	ValidRun(totalRuns int, failedRuns int) bool
+	ThresholdAsString() string
 }
 
 // namedConfiguration is a simple structure containing the name of a MerkhetConfiguration
@@ -81,6 +89,11 @@ func (p *PercentageConfiguration) ValidRun(totalRuns int, failedRuns int) bool {
 	return (float64(failedRuns) / float64(totalRuns)) <= p.percentageThreshold
 }
 
+// ThresholdAsString returns the threshold as a string
+func (p *PercentageConfiguration) ThresholdAsString() string {
+	return fmt.Sprintf("%.2f", p.percentageThreshold*100) + "%"
+}
+
 // FlatConfiguration is an implementation of the Configuration interface that is based on a flat amount of failed runs
 // to calculate viability
 type FlatConfiguration struct {
@@ -96,6 +109,11 @@ func (f *FlatConfiguration) Name() string {
 // ValidRun returns if the failed runs compared to the total runs are below the provided percentage threshold
 func (f *FlatConfiguration) ValidRun(totalRuns int, failedRuns int) bool {
 	return failedRuns <= f.flatThreshold
+}
+
+// ThresholdAsString returns the threshold as a string
+func (f *FlatConfiguration) ThresholdAsString() string {
+	return strconv.Itoa(f.flatThreshold)
 }
 
 // NewPercentageConfiguration creates a new configuration instance that uses a percentage threshold
