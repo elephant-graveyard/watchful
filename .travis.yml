@@ -2,6 +2,7 @@
 language: go
 go:
   - 1.11.x
+  - 1.12.x
 
 install:
   - curl -sL https://raw.githubusercontent.com/homeport/pina-golada/master/scripts/download-latest.sh | bash -s v1.0.0
