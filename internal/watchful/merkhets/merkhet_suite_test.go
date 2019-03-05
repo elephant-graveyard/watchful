@@ -21,7 +21,6 @@
 package merkhets
 
 import (
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/homeport/watchful/pkg/logger"
 	. "github.com/onsi/ginkgo"
@@ -33,7 +32,7 @@ import (
 
 func TestMerkhetImplementations(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t , "watchful internal merkhets")
+	RunSpecs(t, "watchful internal merkhets")
 }
 
 type MockedServer struct {
@@ -41,8 +40,8 @@ type MockedServer struct {
 	Server *httptest.Server
 }
 
-func (m *MockedServer) Route(path string, handler func(w http.ResponseWriter , r *http.Request)) {
-	m.Router.HandleFunc(path , handler)
+func (m *MockedServer) Route(path string, handler func(w http.ResponseWriter, r *http.Request)) {
+	m.Router.HandleFunc(path, handler)
 }
 
 func (m *MockedServer) Start() {
@@ -53,45 +52,43 @@ func NewMockedServer() *MockedServer {
 	router := mux.NewRouter()
 	return &MockedServer{
 		Server: httptest.NewUnstartedServer(router),
-		Router:router,
+		Router: router,
 	}
 }
 
-type ConsoleLogger struct {
-
+type DevNullLogger struct {
 }
 
-func (l *ConsoleLogger) AsPrefix() string {
+func (l *DevNullLogger) AsPrefix() string {
 	return "[test]"
 }
 
-func (l *ConsoleLogger) ChannelProvider() logger.ChannelProvider {
+func (l *DevNullLogger) ChannelProvider() logger.ChannelProvider {
 	return nil
 }
 
-func (l *ConsoleLogger) ID() int {
+func (l *DevNullLogger) ID() int {
 	return 0
 }
 
-func (l *ConsoleLogger) Name() string {
+func (l *DevNullLogger) Name() string {
 	return "console"
 }
 
-func (l *ConsoleLogger) ReportingOn(level logger.LogLevel) logger.ReportingWriter {
+func (l *DevNullLogger) ReportingOn(level logger.LogLevel) logger.ReportingWriter {
 	return &ConsoleLoggerReporter{}
 }
 
-func (l *ConsoleLogger) Write(p []byte, level logger.LogLevel) (n int, err error) {
-	return fmt.Println(string(p))
+func (l *DevNullLogger) Write(p []byte, level logger.LogLevel) (n int, err error) {
+	return 0, nil
 }
 
-func (l *ConsoleLogger) WriteString(level logger.LogLevel, s string) error {
-	_, err := fmt.Println(s)
+func (l *DevNullLogger) WriteString(level logger.LogLevel, s string) error {
+	_, err := l.Write([]byte(s), level)
 	return err
 }
 
 type ConsoleLoggerReporter struct {
-
 }
 
 func (r *ConsoleLoggerReporter) Refocus(level logger.LogLevel) logger.ReportingWriter {
@@ -103,10 +100,5 @@ func (r *ConsoleLoggerReporter) ReviewWith(reviewer logger.ReporterReviewer) log
 }
 
 func (r *ConsoleLoggerReporter) Write(p []byte) (n int, err error) {
-	return fmt.Print(string(p))
+	return 0, nil
 }
-
-
-
-
-
