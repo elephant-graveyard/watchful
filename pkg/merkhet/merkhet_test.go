@@ -61,10 +61,11 @@ var _ = Describe("Merkhet code test", func() {
 
 			pool.StartWorker(merkhet, time.Second, nil)
 
-			pool.ForEach(ConsumeSync(func(m Merkhet, future Future) {
+			err := pool.ForEach(ConsumeSync(func(m Merkhet, future Future) {
 				future.Complete(m.Install())
-			}))
+			})).Wait().FirstError()
 
+			Expect(err).To(BeNil())
 			pool.Shutdown()
 		})
 

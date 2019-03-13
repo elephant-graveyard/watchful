@@ -179,7 +179,8 @@ func (e *MainService) Execute() error {
 						result.SuccessfulRuns(), result.TotalRuns()))
 					future.Complete(nil)
 				}
-			})).FirstError(); err != nil {
+			})).Wait().FirstError(); err != nil {
+				watchfulLogger.WriteString(logger.Error , "A merkhet result was not valid!")
 				shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, fmt.Sprintf("Faliure in merkhet for task #%d", taskIndex))} // Shutdown with the given error
 				return
 			}

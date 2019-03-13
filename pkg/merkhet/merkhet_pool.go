@@ -113,11 +113,12 @@ func (s *SimplePool) ForEach(c Consumer) (output ConsumerResult) {
 
 // Shutdown shuts the pool and it's heartbeats down
 func (s *SimplePool) Shutdown() {
+	for _, beat := range s.heartbeats {
+		beat.StopBeating()
+	}
 	s.TaskWaitGroup().Wait()
-
 	for _, beat := range s.heartbeats {
 		close(beat.Worker().ControllerChannel().C)
-		beat.StopBeating()
 	}
 }
 
