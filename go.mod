@@ -5,7 +5,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gorilla/mux v1.7.0
 	github.com/homeport/gonvenience v1.7.1
-	github.com/homeport/pina-golada v1.2.2
+	github.com/homeport/pina-golada v1.3.2
 	github.com/onsi/ginkgo v1.7.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
