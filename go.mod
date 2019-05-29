@@ -3,7 +3,7 @@ module github.com/homeport/watchful
 require (
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190201205600-f136f9222381
 	github.com/davecgh/go-spew v1.1.1
-	github.com/gorilla/mux v1.7.0
+	github.com/gorilla/mux v1.7.2
 	github.com/homeport/gonvenience v1.7.1
 	github.com/homeport/pina-golada v1.2.2
 	github.com/onsi/ginkgo v1.8.0
