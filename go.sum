@@ -27,6 +27,8 @@ github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T
 github.com/homeport/gonvenience v1.6.0/go.mod h1:G2NH1mGKb2RtQ/xy7Axv5Tnnwzq4yE6NoYyINd1Lvuk=
 github.com/homeport/gonvenience v1.7.1 h1:O2/RKwV7DMqGEDtPU1xmoZXYuqxy3E/dItXwO+XnuvE=
 github.com/homeport/gonvenience v1.7.1/go.mod h1:G2NH1mGKb2RtQ/xy7Axv5Tnnwzq4yE6NoYyINd1Lvuk=
+github.com/homeport/gonvenience v1.8.0 h1:yQJV85uYLMsEOF+Tzohw1YZhT9ZHLFMqeL585trxGTo=
+github.com/homeport/gonvenience v1.8.0/go.mod h1:G2NH1mGKb2RtQ/xy7Axv5Tnnwzq4yE6NoYyINd1Lvuk=
 github.com/homeport/pina-golada v1.2.2 h1:2/Zf13M3QSVxtFLuGM1xXmtiEstN5qKG1dr6vIOT9Sw=
 github.com/homeport/pina-golada v1.2.2/go.mod h1:XMln7aA5txktTMdXxNtqkbeZlQBH/juYnXVrt31Frno=
 github.com/homeport/pina-golada v1.3.2 h1:Zm5Y5sCGiEMXbsSSTJv7bt6bCXxhGNXjwzegrZLtC2U=
