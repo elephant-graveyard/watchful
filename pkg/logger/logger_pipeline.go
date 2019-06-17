@@ -22,16 +22,15 @@ package logger
 
 import (
 	"fmt"
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
 	"io"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/gonvenience/bunt"
+	"github.com/gonvenience/term"
 	"github.com/homeport/watchful/pkg/utf8chunk"
-
-	"github.com/homeport/gonvenience/pkg/v1/term"
 )
 
 // PipelineObserver is an observer that can be registered on a pipeline

@@ -22,8 +22,9 @@ package assets
 
 import (
 	"fmt"
-	"github.com/homeport/pina-golada/pkg/files"
 	"strings"
+
+	"github.com/homeport/pina-golada/pkg/files"
 )
 
 var (
@@ -48,7 +49,7 @@ func SampleApp(language string) (directory files.Directory, e error) {
 	if provider != nil {
 		return provider()
 	}
-	return nil , fmt.Errorf("could not find provider method for language %s" , language)
+	return nil, fmt.Errorf("could not find provider method for language %s", language)
 }
 
 // init initializes the languageMap

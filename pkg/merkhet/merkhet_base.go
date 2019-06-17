@@ -21,8 +21,9 @@
 package merkhet
 
 import (
-	"github.com/homeport/watchful/pkg/logger"
 	"sync"
+
+	"github.com/homeport/watchful/pkg/logger"
 )
 
 // Base represents a merkhet base which contains the values every merkhet needs

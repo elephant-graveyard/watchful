@@ -24,9 +24,10 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/homeport/watchful/pkg/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/homeport/watchful/pkg/logger"
 )
 
 var _ = Describe("Logger code test", func() {

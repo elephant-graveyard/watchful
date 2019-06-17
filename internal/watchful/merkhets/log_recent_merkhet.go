@@ -23,12 +23,13 @@ package merkhets
 import (
 	"bytes"
 	"fmt"
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"regexp"
+	"strconv"
+
+	"github.com/gonvenience/bunt"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
-	"regexp"
-	"strconv"
 )
 
 var (

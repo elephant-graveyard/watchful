@@ -21,9 +21,10 @@
 package utf8chunk_test
 
 import (
-	"github.com/homeport/watchful/pkg/utf8chunk"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/homeport/watchful/pkg/utf8chunk"
 )
 
 var _ = Describe("UTF8 Chunk util test", func() {

@@ -21,9 +21,10 @@
 package merkhets
 
 import (
+	"sync"
+
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
-	"sync"
 )
 
 // AppProvider defines an object that provides one single pushed app in the cf

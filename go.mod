@@ -1,11 +1,12 @@
 module github.com/homeport/watchful
 
+go 1.12
+
 require (
-	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190201205600-f136f9222381
-	github.com/davecgh/go-spew v1.1.1
+	github.com/gonvenience/bunt v1.0.1
+	github.com/gonvenience/term v1.0.0
 	github.com/gorilla/mux v1.7.2
-	github.com/homeport/gonvenience v1.8.0
-	github.com/homeport/pina-golada v1.3.2
+	github.com/homeport/pina-golada v1.4.0
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1

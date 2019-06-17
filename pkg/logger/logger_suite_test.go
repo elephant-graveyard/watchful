@@ -24,10 +24,10 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/homeport/watchful/pkg/logger"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/homeport/watchful/pkg/logger"
 )
 
 func TestLogger(t *testing.T) {
@@ -60,10 +60,9 @@ type DevNullLogger struct {
 }
 
 func (d *DevNullLogger) Write(p []byte) (n int, err error) {
-	return 0 , nil
+	return 0, nil
 }
 
 func NewDevNullLogger() *DevNullLogger {
 	return &DevNullLogger{}
 }
-

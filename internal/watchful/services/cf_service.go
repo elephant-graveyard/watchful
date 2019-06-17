@@ -21,10 +21,11 @@
 package services
 
 import (
+	"os/exec"
+
 	"github.com/homeport/watchful/internal/watchful/cfg"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
-	"os/exec"
 )
 
 // CloudFoundryService is an services that executes a cloud foundry task

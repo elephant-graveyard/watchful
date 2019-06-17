@@ -21,8 +21,9 @@
 package cfw
 
 import (
-	"github.com/homeport/watchful/pkg/logger"
 	"os/exec"
+
+	"github.com/homeport/watchful/pkg/logger"
 )
 
 const (

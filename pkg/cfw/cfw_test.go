@@ -23,9 +23,10 @@ package cfw_test
 import (
 	"fmt"
 
-	"github.com/homeport/watchful/pkg/cfw"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/homeport/watchful/pkg/cfw"
 )
 
 var _ = Describe("Testing cloud foundry worker instance", func() {

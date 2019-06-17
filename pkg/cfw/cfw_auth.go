@@ -22,6 +22,6 @@ package cfw
 
 // CloudFoundryCertificate is a struct containing the needed login information for a cloud foundry instance
 type CloudFoundryCertificate struct {
-	Username    string
-	Password    string
+	Username string
+	Password string
 }

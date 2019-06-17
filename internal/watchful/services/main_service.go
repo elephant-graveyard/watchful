@@ -22,16 +22,17 @@ package services
 
 import (
 	"fmt"
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"os"
+	"os/signal"
+	"time"
+
+	"github.com/gonvenience/bunt"
 	"github.com/homeport/watchful/internal/watchful/cfg"
 	"github.com/homeport/watchful/internal/watchful/merkhets"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
 	"github.com/pkg/errors"
-	"os"
-	"os/signal"
-	"time"
 )
 
 var (
@@ -90,7 +91,7 @@ func (e *MainService) Execute() error {
 	}
 
 	loggerClusterConfig := logger.NewSplitPipelineConfig(config.LoggerConfiguration.PrintLoggerName, location, e.TerminalWidth, loggerConfig, e.Verbose) // Create cluster
-	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout), // Create pipeline
+	loggerCluster := logger.NewLoggerCluster(logger.NewSplitPipeline(loggerClusterConfig, os.Stdout),                                                    // Create pipeline
 		loggerChannelProvider, time.Second)
 	go loggerCluster.StartListening() // Start cluster
 
@@ -116,7 +117,7 @@ func (e *MainService) Execute() error {
 	}
 
 	go func() {
-		watchfulLogger.WriteString(logger.Info , bunt.Sprintf("Aqua{Using CloudFoundryCLI version:⤳}"))
+		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Using CloudFoundryCLI version:⤳}"))
 		cloudFoundryCLI.Version().SubscribeOnOut(watchfulLogger.ReportingOn(logger.Info)).Sync()
 
 		watchfulLogger.WriteString(logger.Info, bunt.Sprintf("Aqua{Installing merkhets⤳\n}"))
@@ -180,7 +181,7 @@ func (e *MainService) Execute() error {
 					future.Complete(nil)
 				}
 			})).Wait().FirstError(); err != nil {
-				watchfulLogger.WriteString(logger.Error , "A merkhet result was not valid!")
+				watchfulLogger.WriteString(logger.Error, "A merkhet result was not valid!")
 				shutdownNotifier <- &ErrorSignal{InnerError: errors.Wrap(err, fmt.Sprintf("Faliure in merkhet for task #%d", taskIndex))} // Shutdown with the given error
 				return
 			}

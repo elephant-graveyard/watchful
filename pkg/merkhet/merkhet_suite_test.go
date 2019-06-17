@@ -24,10 +24,11 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/homeport/watchful/pkg/logger"
-	. "github.com/homeport/watchful/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/homeport/watchful/pkg/logger"
+	. "github.com/homeport/watchful/pkg/merkhet"
 )
 
 func TestMerkhet(t *testing.T) {
@@ -74,9 +75,9 @@ func (s *MerkhetMock) Execute() error {
 
 func NewMerkhetMock(config Configuration, totalRuns int, fails int, canExecute bool, callback *MerkhetCallback) *MerkhetMock {
 	return &MerkhetMock{
-		BaseReference:NewSetSimpleBase(NewLoggerMock() , config , totalRuns - fails , fails),
-		WillExecute: canExecute,
-		Callback:    callback,
+		BaseReference: NewSetSimpleBase(NewLoggerMock(), config, totalRuns-fails, fails),
+		WillExecute:   canExecute,
+		Callback:      callback,
 	}
 }
 

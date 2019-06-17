@@ -24,7 +24,7 @@ all: analysis test build
 
 clean:
 	@rm -rf binaries
-	@GO111MODULE=on go clean -r -cache
+	@GO111MODULE=on go clean -cache $(shell go list ./...)
 
 analysis:
 	@scripts/analysis.sh

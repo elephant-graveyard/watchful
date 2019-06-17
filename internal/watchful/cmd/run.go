@@ -22,10 +22,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/homeport/gonvenience/pkg/v1/term"
+	"os"
+
+	"github.com/gonvenience/term"
 	"github.com/homeport/watchful/internal/watchful/services"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var (

@@ -21,13 +21,15 @@
 package merkhets
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/homeport/watchful/pkg/logger"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"github.com/gorilla/mux"
+	"github.com/homeport/watchful/pkg/logger"
 )
 
 func TestMerkhetImplementations(t *testing.T) {
