@@ -1,17 +1,17 @@
 ---
 language: go
 go:
-  - 1.11.x
   - 1.12.x
 
 install:
-  - curl -sL https://raw.githubusercontent.com/homeport/pina-golada/master/scripts/download-latest.sh | bash -s v1.2.2
-  - curl -sL https://goo.gl/g1CpPX | bash -s v1.0.6 # Golang dev tools including pre-compiled Ginkgo and other useful tools
+  - curl -sL https://raw.githubusercontent.com/homeport/pina-golada/master/scripts/download-latest.sh | bash -s v1.4.0
+  - curl -sL https://goo.gl/g1CpPX | bash -s v1.0.8 # Golang dev tools including pre-compiled Ginkgo and other useful tools
 
 script:
-  - GO111MODULE=on go mod download
-  - GO111MODULE=on go mod verify
-  - make analysis test build
+  - export GO111MODULE=on
+  - go mod download
+  - go mod verify
+  - make analysis test
 
 before_deploy:
   - make build
@@ -24,5 +24,5 @@ deploy:
   file_glob: true
   file: binaries/*
   on:
-    condition: $TRAVIS_GO_VERSION =~ ^1\.11
+    condition: $TRAVIS_GO_VERSION =~ ^1\.12
     tags: true

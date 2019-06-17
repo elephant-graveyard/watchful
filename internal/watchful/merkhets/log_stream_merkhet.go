@@ -23,12 +23,13 @@ package merkhets
 import (
 	"bytes"
 	"fmt"
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"strconv"
+	"time"
+
+	"github.com/gonvenience/bunt"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
-	"strconv"
-	"time"
 )
 
 // LogStreamMerkhet is an implementation of the Merkhet interface that tests of the recent log fetch is successful

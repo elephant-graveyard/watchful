@@ -21,14 +21,15 @@
 package services
 
 import (
+	"regexp"
+	"strconv"
+	"time"
+
 	"github.com/homeport/watchful/internal/watchful/cfg"
 	"github.com/homeport/watchful/internal/watchful/merkhets"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 var (

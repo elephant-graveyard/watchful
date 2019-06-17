@@ -21,7 +21,7 @@
 package merkhets
 
 import (
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"github.com/gonvenience/bunt"
 	"github.com/homeport/watchful/pkg/cfw"
 	"github.com/homeport/watchful/pkg/logger"
 	"github.com/homeport/watchful/pkg/merkhet"

@@ -22,12 +22,13 @@ package merkhets
 
 import (
 	"fmt"
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
-	"github.com/homeport/watchful/pkg/logger"
-	"github.com/homeport/watchful/pkg/merkhet"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/gonvenience/bunt"
+	"github.com/homeport/watchful/pkg/logger"
+	"github.com/homeport/watchful/pkg/merkhet"
 )
 
 // CurlMerkhet is an implementation of the Merkhet interface that curls against a domain

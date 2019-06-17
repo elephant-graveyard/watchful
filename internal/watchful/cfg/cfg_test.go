@@ -21,9 +21,10 @@
 package cfg_test
 
 import (
-	"github.com/homeport/watchful/internal/watchful/cfg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/homeport/watchful/internal/watchful/cfg"
 )
 
 var _ = Describe("Configuration testing", func() {

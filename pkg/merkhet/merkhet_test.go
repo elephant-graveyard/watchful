@@ -23,9 +23,10 @@ package merkhet_test
 import (
 	"time"
 
-	. "github.com/homeport/watchful/pkg/merkhet"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/homeport/watchful/pkg/merkhet"
 )
 
 var _ = Describe("Merkhet code test", func() {

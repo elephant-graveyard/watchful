@@ -21,11 +21,13 @@
 package merkhets
 
 import (
-	"github.com/homeport/watchful/pkg/merkhet"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"net/http"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"github.com/homeport/watchful/pkg/merkhet"
 )
 
 var _ = Describe("the implemented merkhets should function correctly", func() {

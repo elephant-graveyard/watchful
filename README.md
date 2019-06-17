@@ -17,7 +17,7 @@ _This project is work in progress._
 
 We are happy to have other people contributing to the project. If you decide to do that, here's how to:
 
-- get a Go development environment with version 1.11 or greater
+- get a Go development environment with version 1.12 or greater
 - fork the project
 - create a new branch
 - make your changes
@@ -63,7 +63,7 @@ docker run \
   --rm \
   --volume $GOPATH/src/github.com/homeport/watchful:/go/src/github.com/homeport/watchful \
   --workdir /go/src/github.com/homeport/watchful \
-  golang:1.11 /bin/bash
+  golang:1.12 /bin/bash
 ```
 ---------
 ## Commands

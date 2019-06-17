@@ -21,12 +21,13 @@
 package services
 
 import (
-	"github.com/homeport/gonvenience/pkg/v1/bunt"
+	"os"
+	"path/filepath"
+
+	"github.com/gonvenience/bunt"
 	"github.com/homeport/pina-golada/pkg/files"
 	"github.com/homeport/watchful/internal/watchful/assets"
 	"github.com/homeport/watchful/pkg/logger"
-	"os"
-	"path/filepath"
 )
 
 var (
@@ -52,7 +53,7 @@ func (e *AssetService) Cleanup() {
 
 // SampleAppPath returns the path to the sample app
 func (e *AssetService) SampleAppPath() string {
-	return filepath.Join(e.ExportPath , SampleAppSubPath)
+	return filepath.Join(e.ExportPath, SampleAppSubPath)
 }
 
 // NewAssetService creates a new asset services
