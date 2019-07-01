@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/gonvenience/bunt v1.0.7
 	github.com/gonvenience/term v1.0.0
-	github.com/gorilla/mux v1.7.2
+	github.com/gorilla/mux v1.7.3
 	github.com/homeport/pina-golada v1.4.0
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
