@@ -7,7 +7,7 @@ require (
 	github.com/gonvenience/term v1.0.0
 	github.com/gorilla/mux v1.7.4
 	github.com/homeport/pina-golada v1.4.1
-	github.com/onsi/ginkgo v1.12.1
+	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.7
